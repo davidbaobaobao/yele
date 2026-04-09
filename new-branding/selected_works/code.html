@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>studio.ma — Selected Works</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,200..800;1,6..72,200..800&amp;family=Inter:wght@100..900&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "surface-tint": "#5f5e5e",
+                        "surface-variant": "#e5e2dc",
+                        "surface-bright": "#fcf9f3",
+                        "on-error": "#ffffff",
+                        "error-container": "#ffdad6",
+                        "tertiary-container": "#002112",
+                        "inverse-primary": "#c8c6c5",
+                        "outline-variant": "#c4c7c7",
+                        "on-surface": "#1c1c18",
+                        "on-primary-fixed": "#1c1b1b",
+                        "inverse-surface": "#31312d",
+                        "surface-container-low": "#f6f3ed",
+                        "secondary-fixed": "#e9e2d3",
+                        "on-surface-variant": "#444748",
+                        "tertiary-fixed": "#c5ecd2",
+                        "tertiary": "#000000",
+                        "tertiary-fixed-dim": "#aacfb6",
+                        "secondary-container": "#e9e2d3",
+                        "primary-fixed-dim": "#c8c6c5",
+                        "on-tertiary": "#ffffff",
+                        "secondary": "#625e53",
+                        "on-tertiary-fixed": "#002112",
+                        "primary-container": "#1c1b1b",
+                        "on-secondary-container": "#686458",
+                        "on-secondary-fixed": "#1e1c13",
+                        "inverse-on-surface": "#f3f0ea",
+                        "on-primary": "#ffffff",
+                        "on-secondary-fixed-variant": "#4a473c",
+                        "secondary-fixed-dim": "#ccc6b8",
+                        "error": "#ba1a1a",
+                        "surface-container-highest": "#e5e2dc",
+                        "on-primary-fixed-variant": "#474746",
+                        "on-primary-container": "#858383",
+                        "primary": "#000000",
+                        "surface-container-high": "#ebe8e2",
+                        "on-background": "#1c1c18",
+                        "surface-container": "#f0eee8",
+                        "surface": "#fcf9f3",
+                        "outline": "#747878",
+                        "surface-dim": "#dcdad4",
+                        "primary-fixed": "#e5e2e1",
+                        "background": "#fcf9f3",
+                        "surface-container-lowest": "#ffffff",
+                        "on-error-container": "#93000a",
+                        "on-secondary": "#ffffff",
+                        "on-tertiary-fixed-variant": "#2c4e3b",
+                        "on-tertiary-container": "#688c76"
+                    },
+                    fontFamily: {
+                        "headline": ["Newsreader"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    },
+                    borderRadius: { "DEFAULT": "0px", "lg": "0px", "xl": "0px", "full": "9999px" },
+                },
+            },
+        }
+    </script>
+<style>
+        .washi-texture {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 9999;
+            opacity: 0.04;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3%3Ffilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+        }
+        .sumi-stroke {
+            mask-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 100 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 10 Q 25 0, 50 10 T 100 10' stroke='black' fill='transparent'/%3E%3C/svg%3E");
+            mask-size: contain;
+            mask-repeat: no-repeat;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface font-body text-on-surface selection:bg-tertiary-fixed selection:text-on-tertiary-fixed">
+<div class="washi-texture"></div>
+<!-- TopAppBar Navigation Shell -->
+<header class="fixed top-0 w-full z-50 bg-[#fcf9f3]/80 dark:bg-stone-950/80 backdrop-blur-xl">
+<nav class="flex justify-between items-center px-8 py-6 w-full max-w-screen-2xl mx-auto">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-[#000000] dark:text-[#fcf9f3]">menu</span>
+</div>
+<h1 class="font-['Newsreader'] font-light italic text-[#000000] dark:text-[#fcf9f3] tracking-tighter text-2xl">studio.ma</h1>
+<div class="flex items-center gap-6">
+<div class="hidden md:flex gap-8">
+<a class="font-['Inter'] font-extralight text-xs tracking-[0.1em] lowercase text-[#000000] dark:text-[#fcf9f3] border-b-[0.5px] border-[#000000] transition-colors duration-400 ease-in-out" href="#">work</a>
+<a class="font-['Inter'] font-extralight text-xs tracking-[0.1em] lowercase text-[#000000]/60 dark:text-[#fcf9f3]/60 hover:text-[#c5ecd2] transition-colors duration-400 ease-in-out" href="#">philosophy</a>
+<a class="font-['Inter'] font-extralight text-xs tracking-[0.1em] lowercase text-[#000000]/60 dark:text-[#fcf9f3]/60 hover:text-[#c5ecd2] transition-colors duration-400 ease-in-out" href="#">contact</a>
+</div>
+<span class="material-symbols-outlined text-[#000000] dark:text-[#fcf9f3]">search</span>
+</div>
+</nav>
+<div class="bg-[#e9e2d3]/20 dark:bg-stone-800/20 h-[0.5px] w-full absolute bottom-0"></div>
+</header>
+<main class="pt-40 pb-20">
+<!-- Hero Section -->
+<section class="px-8 max-w-screen-2xl mx-auto mb-32">
+<div class="relative inline-block">
+<h2 class="font-headline font-light text-7xl md:text-9xl tracking-tight leading-[1.1] text-primary">
+                    Selected /<br/>
+<span class="italic pl-12 md:pl-24">Works</span>
+</h2>
+<!-- Decorative Sumi Stroke Element -->
+<div class="absolute -bottom-4 left-0 w-full h-8 bg-tertiary-fixed opacity-30 mix-blend-multiply pointer-events-none" style="clip-path: polygon(0% 45%, 15% 40%, 30% 50%, 50% 35%, 70% 55%, 85% 42%, 100% 50%, 100% 60%, 85% 58%, 70% 65%, 50% 50%, 30% 62%, 15% 55%, 0% 65%);"></div>
+</div>
+</section>
+<!-- Project Gallery -->
+<section class="w-full space-y-32 md:space-y-48">
+<!-- Project 01 -->
+<article class="group">
+<div class="px-4 md:px-8 max-w-screen-2xl mx-auto">
+<div class="relative overflow-hidden aspect-[16/10] md:aspect-[21/9] bg-surface-container-low">
+<img alt="Interior of a minimalist concrete gallery" class="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105" data-alt="Ultra-minimalist architectural interior with smooth concrete walls, dramatic shadows from a skylight, and a single black bench" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB8cUR6zBDZltkrvmbAslsVak9707d21LWtnVRyrEgcetpHH3G_NraUNJRGPUgz44aW6Ft6tsBKL3KV-AoWZv9vKQbWrVJMEdyP_ARJz8MKJ7ffWj-52M83wNqZrum8af0PV-0ehXWsnK4hxLEPf8_EzcjVrAmUPrKCkY7H4o4IysI53yhVGf-S1ntt7zLY2V0NKUFKuHUKn0d8sDeqtH1ogf3ZwD2jmmYORXw9eSSALxCzp7XpfdNqaGqDUzn0JaS8VbNd6RpBaN4"/>
+</div>
+<div class="mt-12 flex flex-col md:flex-row justify-between items-start gap-8">
+<div class="max-w-xl">
+<a class="inline-block border-b-[0.5px] border-stone/20 hover:border-primary transition-colors duration-400" href="#">
+<h3 class="font-headline font-light text-3xl tracking-tight lowercase">01. ethereal architecture</h3>
+</a>
+<p class="mt-4 font-body font-light text-sm text-on-surface-variant leading-relaxed tracking-wide lowercase">
+                                a digital archive for an avant-garde architectural firm in kyoto. focusing on the interplay of light and shadow within structural voids.
+                            </p>
+</div>
+<div class="font-label text-[10px] tracking-[0.2em] uppercase text-outline opacity-60">
+                            / 2024 / branding + web
+                        </div>
+</div>
+</div>
+<!-- Ma Spacing Rule -->
+<div class="mt-32 md:mt-48 h-[0.5px] bg-[#C8C2B4]/20 w-full max-w-screen-xl mx-auto"></div>
+</article>
+<!-- Project 02 (Asymmetric Offset) -->
+<article class="group">
+<div class="px-4 md:px-8 max-w-screen-2xl mx-auto md:pl-[15%]">
+<div class="relative overflow-hidden aspect-square md:aspect-[16/8] bg-surface-container-low">
+<img alt="Minimalist pottery studio" class="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105" data-alt="Handcrafted ceramic bowls on a wooden shelf in a sun-drenched studio with soft, diffused white light and natural textures" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBZjurkXRE3AbqZ5ckd4BnPHhhjbTg68He2FQLiIyCiU_twddzW_0jN38ynYMXLdbtbR2LHS7R2pOTU_aSylFXlQCBhCLKPjFh36olEOiQB3QvxTYuoYz9KrzM6CIxsxsKDwcr16PjqKFKp7ahBAMc9FPFYFp6Ma9fc7Z2oyctt5R62RX9R8Kj2zcsORgI73iyBxp7yrSoIHHftZ3phezyOmohQVI4sDJjcs0SGiQxP9n8M-rwCSft_MeiwtUhBJoWvikj4t-CK4OA"/>
+</div>
+<div class="mt-12 flex flex-col md:flex-row justify-between items-start gap-8">
+<div class="max-w-xl">
+<a class="inline-block border-b-[0.5px] border-stone/20 hover:border-primary transition-colors duration-400" href="#">
+<h3 class="font-headline font-light text-3xl tracking-tight lowercase">02. mono ceramics</h3>
+</a>
+<p class="mt-4 font-body font-light text-sm text-on-surface-variant leading-relaxed tracking-wide lowercase">
+                                redefining tactile experience for a sustainable ceramics brand. building a digital home that breathes with the rhythm of the potter's wheel.
+                            </p>
+</div>
+<div class="font-label text-[10px] tracking-[0.2em] uppercase text-outline opacity-60">
+                            / 2023 / e-commerce
+                        </div>
+</div>
+</div>
+<!-- Ma Spacing Rule -->
+<div class="mt-32 md:mt-48 h-[0.5px] bg-[#C8C2B4]/20 w-full max-w-screen-xl mx-auto"></div>
+</article>
+<!-- Project 03 -->
+<article class="group">
+<div class="px-4 md:px-8 max-w-screen-2xl mx-auto">
+<div class="relative overflow-hidden aspect-[16/10] md:aspect-[21/9] bg-surface-container-low">
+<img alt="Minimalist concept store" class="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105" data-alt="Sleek modern concept store with black metal racks, monochromatic apparel, and dramatic architectural lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCgNh_bqECC016yiNSz21GAVgDkx_r6M51-4HY2kifT_AModI5krU-qQyv7fPZ6UxVLht5Ji8WBvBeWGN213l4UTBCHQAqwCTUC-uOgg35QTfFWCD0PgqNloZfWkgGET1dv0_WjtMcS55MjTXE57H8Ta6eHIihxYMop-4Nci_ABRKQ5g1baguRUJu1KmeyM5wsIP8-eRRtFpgXlmr8nGFFkq99TYK0LCtaiw0vaupvHWhYziGoWzG7M3Xd06WN9upZ2HOgM-lFLfkw"/>
+</div>
+<div class="mt-12 flex flex-col md:flex-row justify-between items-start gap-8">
+<div class="max-w-xl">
+<a class="inline-block border-b-[0.5px] border-stone/20 hover:border-primary transition-colors duration-400" href="#">
+<h3 class="font-headline font-light text-3xl tracking-tight lowercase">03. obsidian collective</h3>
+</a>
+<p class="mt-4 font-body font-light text-sm text-on-surface-variant leading-relaxed tracking-wide lowercase">
+                                an immersive lookbook for a dark-wear fashion label. a study in textures, movement, and the absence of color.
+                            </p>
+</div>
+<div class="font-label text-[10px] tracking-[0.2em] uppercase text-outline opacity-60">
+                            / 2024 / creative direction
+                        </div>
+</div>
+</div>
+</article>
+</section>
+<!-- Call to Action -->
+<section class="py-40 px-8 text-center bg-surface-container-low mt-40">
+<h4 class="font-headline font-light text-4xl mb-12 lowercase">let us build the void together.</h4>
+<a class="px-12 py-4 bg-primary text-on-primary font-label text-xs tracking-[0.2em] lowercase hover:bg-tertiary-fixed hover:text-on-tertiary-fixed transition-colors duration-400" href="#">
+                start a project
+            </a>
+</section>
+</main>
+<!-- Footer Shell -->
+<footer class="w-full pt-32 pb-16 bg-[#fcf9f3] dark:bg-stone-950">
+<div class="flex flex-col items-center gap-12 px-8 w-full max-w-screen-xl mx-auto">
+<h5 class="font-['Newsreader'] font-light text-2xl tracking-tighter">studio.ma</h5>
+<div class="flex gap-12">
+<a class="font-['Inter'] font-extralight text-xs tracking-[0.1em] lowercase text-[#000000]/40 dark:text-[#fcf9f3]/40 hover:text-[#000000] dark:hover:text-[#fcf9f3] transition-colors duration-400" href="#">work</a>
+<a class="font-['Inter'] font-extralight text-xs tracking-[0.1em] lowercase text-[#000000]/40 dark:text-[#fcf9f3]/40 hover:text-[#000000] dark:hover:text-[#fcf9f3] transition-colors duration-400" href="#">philosophy</a>
+<a class="font-['Inter'] font-extralight text-xs tracking-[0.1em] lowercase text-[#000000]/40 dark:text-[#fcf9f3]/40 hover:text-[#000000] dark:hover:text-[#fcf9f3] transition-colors duration-400" href="#">contact</a>
+<a class="font-['Inter'] font-extralight text-xs tracking-[0.1em] lowercase text-[#000000]/40 dark:text-[#fcf9f3]/40 hover:text-[#000000] dark:hover:text-[#fcf9f3] transition-colors duration-400" href="#">privacy</a>
+</div>
+<p class="font-['Inter'] font-extralight text-xs tracking-[0.1em] lowercase text-[#000000]/40">© twenty twenty four studio ma. all rights reserved.</p>
+</div>
+</footer>
+</body></html>

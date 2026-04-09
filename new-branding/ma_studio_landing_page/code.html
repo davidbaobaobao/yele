@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>ma studio — the architecture of silence</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300&amp;family=Newsreader:ital,opsz,wght@0,6..72,200;0,6..72,300;1,6..72,200&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "surface-container-high": "#ebe8e2",
+              "on-secondary-container": "#686458",
+              "on-surface-variant": "#444748",
+              "error": "#ba1a1a",
+              "inverse-primary": "#c8c6c5",
+              "error-container": "#ffdad6",
+              "surface-variant": "#e5e2dc",
+              "tertiary-fixed": "#c5ecd2",
+              "primary": "#000000",
+              "tertiary-container": "#002112",
+              "secondary": "#625e53",
+              "on-tertiary-container": "#688c76",
+              "on-primary-container": "#858383",
+              "inverse-on-surface": "#f3f0ea",
+              "inverse-surface": "#31312d",
+              "primary-fixed-dim": "#c8c6c5",
+              "on-tertiary-fixed": "#002112",
+              "surface-container-lowest": "#ffffff",
+              "on-secondary": "#ffffff",
+              "on-error-container": "#93000a",
+              "on-background": "#1c1c18",
+              "on-tertiary": "#ffffff",
+              "surface": "#fcf9f3",
+              "secondary-fixed": "#e9e2d3",
+              "outline": "#747878",
+              "on-error": "#ffffff",
+              "background": "#fcf9f3",
+              "on-surface": "#1c1c18",
+              "on-secondary-fixed": "#1e1c13",
+              "secondary-container": "#e9e2d3",
+              "surface-tint": "#5f5e5e",
+              "surface-container-low": "#f6f3ed",
+              "surface-container": "#f0eee8",
+              "on-tertiary-fixed-variant": "#2c4e3b",
+              "primary-fixed": "#e5e2e1",
+              "surface-bright": "#fcf9f3",
+              "secondary-fixed-dim": "#ccc6b8",
+              "on-primary-fixed": "#1c1b1b",
+              "on-primary": "#ffffff",
+              "surface-container-highest": "#e5e2dc",
+              "tertiary": "#000000",
+              "on-primary-fixed-variant": "#474746",
+              "primary-container": "#1c1b1b",
+              "outline-variant": "#c4c7c7",
+              "surface-dim": "#dcdad4",
+              "on-secondary-fixed-variant": "#4a473c",
+              "tertiary-fixed-dim": "#aacfb6"
+            },
+            fontFamily: {
+              "headline": ["Newsreader"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0px", "lg": "0px", "xl": "0px", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .washi-texture {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 9999;
+            opacity: 0.04;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 200, 'GRAD' 0, 'opsz' 24;
+        }
+        .ink-wash {
+            filter: blur(80px);
+            background: radial-gradient(circle, rgba(28, 28, 24, 0.12) 0%, rgba(252, 249, 243, 0) 70%);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface font-body font-extralight overflow-x-hidden selection:bg-tertiary-fixed selection:text-primary">
+<!-- Washi Texture Overlay -->
+<div class="washi-texture"></div>
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-[#fcf9f3]/80 dark:bg-[#1A1A1A]/80 backdrop-blur-xl flex justify-between items-center px-8 py-6">
+<nav class="hidden md:flex gap-12 items-center flex-1">
+<a class="font-inter font-extralight text-[10px] lowercase tracking-[0.2em] text-[#000000] dark:text-[#fcf9f3] border-b-[0.5px] border-[#C8C2B4]/20 hover:text-[#c5ecd2] transition-colors duration-400 ease-in-out" href="#">tiers</a>
+<a class="font-inter font-extralight text-[10px] lowercase tracking-[0.2em] text-[#000000]/60 dark:text-[#fcf9f3]/60 hover:text-[#c5ecd2] transition-colors duration-400 ease-in-out" href="#">process</a>
+</nav>
+<div class="flex-1 flex justify-center">
+<h1 class="font-newsreader italic text-2xl tracking-widest text-[#000000] dark:text-[#fcf9f3]">ma studio</h1>
+</div>
+<nav class="hidden md:flex gap-12 items-center flex-1 justify-end">
+<a class="font-inter font-extralight text-[10px] lowercase tracking-[0.2em] text-[#000000]/60 dark:text-[#fcf9f3]/60 hover:text-[#c5ecd2] transition-colors duration-400 ease-in-out" href="#">journal</a>
+<button class="material-symbols-outlined text-[#000000] dark:text-[#fcf9f3] opacity-70 hover:opacity-100 transition-opacity">search</button>
+</nav>
+<button class="md:hidden material-symbols-outlined">menu</button>
+</header>
+<main>
+<!-- Hero Section -->
+<section class="relative min-height-[884px] flex flex-col items-center justify-center px-8 pt-32 pb-20 overflow-hidden">
+<!-- Ink Wash Cloud -->
+<div class="absolute -bottom-20 -left-20 w-[600px] h-[600px] ink-wash opacity-60 z-0"></div>
+<div class="relative z-10 flex flex-col items-center text-center max-w-4xl">
+<!-- Sumi Stroke -->
+<div class="mb-8 opacity-20 transform -rotate-1">
+<svg fill="none" height="2" viewbox="0 0 240 2" width="240" xmlns="http://www.w3.org/2000/svg">
+<path d="M0 1C40 1 80 0.5 120 1C160 1.5 200 1 240 1" stroke="black" stroke-dasharray="1 2" stroke-width="0.5"></path>
+</svg>
+</div>
+<h2 class="font-headline font-light text-5xl md:text-8xl leading-[1.1] mb-12 tracking-tight">
+                    We build<br/>
+<span class="italic">websites</span><br/>
+                    that breathe.
+                </h2>
+<p class="font-body font-extralight text-sm md:text-base lowercase tracking-[0.2em] mb-16 opacity-60">
+                    a studio that subscribes to less
+                </p>
+<a class="font-label text-[10px] lowercase tracking-[0.2em] border-b border-primary/20 pb-1 hover:border-tertiary-fixed hover:text-on-tertiary-container transition-all duration-400" href="#brief">
+                    begin your brief →
+                </a>
+</div>
+<!-- Scroll Indicator / Fog Transition -->
+<div class="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-t from-secondary-container to-transparent opacity-30"></div>
+</section>
+<!-- Section Separator -->
+<div class="w-full py-20 flex justify-center px-8">
+<div class="w-full h-[0.5px] bg-[#C8C2B4]/30"></div>
+</div>
+<!-- Section 2: Subscription Tiers -->
+<section class="bg-secondary-container py-32 px-8">
+<div class="max-w-6xl mx-auto">
+<div class="grid grid-cols-1 md:grid-cols-3 gap-24 md:gap-12">
+<!-- Tier 1 -->
+<div class="flex flex-col items-start space-y-8 group">
+<span class="font-headline text-4xl font-light opacity-30 group-hover:opacity-100 transition-opacity duration-700">一</span>
+<div>
+<h3 class="font-headline text-3xl font-light mb-4 italic">Shizuka <span class="text-sm font-body font-extralight not-italic tracking-[0.1em] opacity-40 ml-2">(Still)</span></h3>
+<p class="font-body text-xs leading-relaxed opacity-60 max-w-xs lowercase tracking-wider">
+                                a single point of presence. refined, focused, essential.
+                            </p>
+</div>
+<ul class="space-y-4 font-body text-[10px] lowercase tracking-[0.15em] opacity-80">
+<li>launchpad site (5 pages)</li>
+<li>10-day artisanal build</li>
+<li>bespoke typography</li>
+</ul>
+<div class="pt-8">
+<span class="block font-headline text-2xl font-light mb-4 italic">$3,500/mo</span>
+<a class="font-label text-[10px] lowercase tracking-[0.2em] border-b border-primary/20 pb-1 hover:text-on-tertiary-container transition-colors" href="#">begin →</a>
+</div>
+</div>
+<!-- Tier 2 (Recommended) -->
+<div class="flex flex-col items-start space-y-8 md:mt-20 group relative">
+<span class="font-headline text-4xl font-light text-on-tertiary-container">二</span>
+<div>
+<h3 class="font-headline text-3xl font-light mb-4 italic">Nagare <span class="text-sm font-body font-extralight not-italic tracking-[0.1em] opacity-40 ml-2">(Flow)</span></h3>
+<p class="font-body text-xs leading-relaxed opacity-60 max-w-xs lowercase tracking-wider">
+                                a living ecosystem that grows with your vision.
+                            </p>
+</div>
+<ul class="space-y-4 font-body text-[10px] lowercase tracking-[0.15em] opacity-80">
+<li>growth site (12 pages)</li>
+<li>integrated cms architecture</li>
+<li>fluid motion &amp; transitions</li>
+<li>priority studio access</li>
+</ul>
+<div class="pt-8">
+<span class="block font-headline text-2xl font-light mb-4 italic text-on-tertiary-container">$6,000/mo</span>
+<a class="font-label text-[10px] lowercase tracking-[0.2em] border-b border-on-tertiary-container/40 pb-1 text-on-tertiary-container hover:opacity-70 transition-colors" href="#">begin →</a>
+</div>
+</div>
+<!-- Tier 3 -->
+<div class="flex flex-col items-start space-y-8 md:-mt-10 group">
+<span class="font-headline text-4xl font-light opacity-30 group-hover:opacity-100 transition-opacity duration-700">三</span>
+<div>
+<h3 class="font-headline text-3xl font-light mb-4 italic">Sekai <span class="text-sm font-body font-extralight not-italic tracking-[0.1em] opacity-40 ml-2">(World)</span></h3>
+<p class="font-body text-xs leading-relaxed opacity-60 max-w-xs lowercase tracking-wider">
+                                the complete architectural system for an emerging universe.
+                            </p>
+</div>
+<ul class="space-y-4 font-body text-[10px] lowercase tracking-[0.15em] opacity-80">
+<li>full brand + web system</li>
+<li>custom interactive motion</li>
+<li>exclusive digital art direction</li>
+<li>24/7 dedicated lineage</li>
+</ul>
+<div class="pt-8">
+<span class="block font-headline text-2xl font-light mb-4 italic">$12,000/mo</span>
+<a class="font-label text-[10px] lowercase tracking-[0.2em] border-b border-primary/20 pb-1 hover:text-on-tertiary-container transition-colors" href="#">begin →</a>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Section 3: The Process -->
+<section class="bg-surface py-40 px-8 relative overflow-hidden">
+<div class="max-w-6xl mx-auto">
+<h4 class="font-label text-[10px] lowercase tracking-[0.4em] opacity-30 mb-24 text-center">the path of creation</h4>
+<div class="relative">
+<!-- Hand-drawn dotted path (SVG) -->
+<svg class="absolute top-1/2 left-0 w-full h-24 -translate-y-1/2 z-0 hidden md:block" preserveaspectratio="none" viewbox="0 0 1000 100">
+<path d="M0,50 C150,20 350,80 500,50 C650,20 850,80 1000,50" fill="none" stroke="#C8C2B4" stroke-dasharray="2 6" stroke-width="0.5"></path>
+</svg>
+<div class="grid grid-cols-1 md:grid-cols-4 gap-12 relative z-10">
+<!-- Step 1 -->
+<div class="flex flex-col items-center text-center space-y-6">
+<div class="w-16 h-16 bg-surface border border-[#C8C2B4]/20 flex items-center justify-center font-headline text-xl">一</div>
+<h5 class="font-headline italic text-lg">Subscribe</h5>
+<p class="font-body text-[10px] lowercase tracking-widest opacity-40 px-4">choose your pace of growth</p>
+</div>
+<!-- Step 2 -->
+<div class="flex flex-col items-center text-center space-y-6 md:pt-16">
+<div class="w-16 h-16 bg-surface border border-[#C8C2B4]/20 flex items-center justify-center font-headline text-xl">二</div>
+<h5 class="font-headline italic text-lg">Brief</h5>
+<p class="font-body text-[10px] lowercase tracking-widest opacity-40 px-4">transfer your vision to our canvas</p>
+</div>
+<!-- Step 3 -->
+<div class="flex flex-col items-center text-center space-y-6">
+<div class="w-16 h-16 bg-surface border border-[#C8C2B4]/20 flex items-center justify-center font-headline text-xl">三</div>
+<h5 class="font-headline italic text-lg">Craft</h5>
+<p class="font-body text-[10px] lowercase tracking-widest opacity-40 px-4">we build in silence and precision</p>
+</div>
+<!-- Step 4 -->
+<div class="flex flex-col items-center text-center space-y-6 md:pt-16">
+<div class="w-16 h-16 bg-surface border border-[#C8C2B4]/20 flex items-center justify-center font-headline text-xl">四</div>
+<h5 class="font-headline italic text-lg">Launch</h5>
+<p class="font-body text-[10px] lowercase tracking-widest opacity-40 px-4">your presence enters the world</p>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Image Gallery / Mood -->
+<section class="py-20 px-8">
+<div class="grid grid-cols-12 gap-4 h-[600px]">
+<div class="col-span-8 h-full bg-surface-container-low overflow-hidden">
+<img alt="" class="w-full h-full object-cover grayscale opacity-80 hover:grayscale-0 transition-all duration-1000" data-alt="minimalist architectural detail of a concrete wall meeting a soft paper screen with a single branch casting a sharp shadow" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBbjT6P4oUKOjUDbE8ocDpPi91qj_6CQ74vieVjsC7DHqQRmftX5tI1NCPaqNMMg-0EfeLrkVscicr2rNRQl2bUWxw3Mx3olMVFKfPX92ZjrWWswPBKt_kUD4AW_oyNUqm6EsZ97JpqQkA-XzNdhGguIoOjOrwrQYY-PRy043Bzm-Sh7ILGslbV28Exh63_CFoMBx-qYKesbkfun01AIBZbn7-cHNFPoPB3-B1C_ZCr6CWWRGPC0tCKoJZ9y9HanMXU845jSULTWhc"/>
+</div>
+<div class="col-span-4 h-full flex flex-col gap-4">
+<div class="flex-1 bg-surface-container-high overflow-hidden">
+<img alt="" class="w-full h-full object-cover grayscale opacity-60" data-alt="close-up of textured washi paper with a faint ink mark in the corner, soft warm natural lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAxMrb3CMViwoMY8dku01OtDgtIQg0ogTZBQKAXPPFfzAnj-crWSObJ_pUkt6ksOOZgW1A3SM5tTUFjuiQ5w_RDBv4a71yDLrzl8oKfVXHehvUv4dEHQdrVYeGCW6w3T2MiCIT3U_pA18mTtWMOQR21oB62uuOmYhYly0_wlFWkH1GPt30lHyM5hXMDKFj0zZ1i8kFa7Fj4qrjxGBENHNS-smMKkAR_1jRrtP5_DBjTdHWPdiFfskZUxSnJIRWfh-pBW3A2OKTRwA4"/>
+</div>
+<div class="flex-1 bg-tertiary-fixed/20 overflow-hidden relative">
+<div class="absolute inset-0 flex items-center justify-center p-8">
+<p class="font-headline italic text-2xl text-on-tertiary-fixed-variant text-center">"silence is the ultimate luxury."</p>
+</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="bg-[#fcf9f3] dark:bg-[#1A1A1A] w-full py-20 px-8 flex flex-col items-center gap-8">
+<div class="flex gap-12">
+<a class="font-inter font-extralight text-[10px] lowercase tracking-[0.2em] no-underline text-[#000000]/40 hover:text-[#c5ecd2] transition-colors duration-400" href="#">privacy</a>
+<a class="font-inter font-extralight text-[10px] lowercase tracking-[0.2em] no-underline text-[#000000]/40 hover:text-[#c5ecd2] transition-colors duration-400" href="#">contact</a>
+<a class="font-inter font-extralight text-[10px] lowercase tracking-[0.2em] no-underline text-[#000000]/40 hover:text-[#c5ecd2] transition-colors duration-400 underline decoration-[#C8C2B4]/40 underline-offset-4" href="#">journal</a>
+</div>
+<p class="font-inter font-extralight text-[10px] lowercase tracking-[0.2em] text-[#000000] dark:text-[#fcf9f3]">
+            © ma studio. the architecture of silence.
+        </p>
+</footer>
+</body></html>

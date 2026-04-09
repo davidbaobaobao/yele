@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 80" width="320" height="80">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300&amp;family=Jost:wght@200&amp;display=swap');
+    </style>
+  </defs>
+
+  <!-- Dark variant (default) — use on dark/ink backgrounds -->
+  <g id="logo-dark">
+    <!-- Wordmark -->
+    <text
+      x="0" y="44"
+      font-family="'Cormorant Garamond', Georgia, serif"
+      font-size="52"
+      font-weight="300"
+      fill="#F4F1EA"
+      letter-spacing="-1.5"
+    >Vitrina</text>
+    <!-- Gold dot -->
+    <text
+      x="224" y="44"
+      font-family="'Cormorant Garamond', Georgia, serif"
+      font-size="52"
+      font-weight="300"
+      fill="#C4A96A"
+    >.</text>
+
+    <!-- Gold rule -->
+    <line x1="0" y1="54" x2="28" y2="54" stroke="#C4A96A" stroke-width="0.5"/>
+
+    <!-- STUDIO label -->
+    <text
+      x="36" y="57"
+      font-family="'Jost', 'Helvetica Neue', sans-serif"
+      font-size="9"
+      font-weight="200"
+      fill="#8C8C84"
+      letter-spacing="5"
+    >STUDIO</text>
+  </g>
+</svg>
