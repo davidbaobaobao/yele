@@ -86,8 +86,8 @@ export default function Navigation() {
             >
               quiero mi web
             </Link>
-            <Link
-              href="/registro"
+            <a
+              href={process.env.NEXT_PUBLIC_DASHBOARD_URL ?? 'https://app.yele.design'}
               style={{
                 display: 'inline-block',
                 padding: '8px 16px',
@@ -112,7 +112,7 @@ export default function Navigation() {
               }}
             >
               ingresar
-            </Link>
+            </a>
           </div>
         </div>
       </motion.header>
