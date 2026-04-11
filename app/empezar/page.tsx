@@ -1019,7 +1019,9 @@ export default function EmpezarPage() {
       })
 
       if (res.ok) {
-        router.push(`/gracias?nombre=${encodeURIComponent(data.businessName)}`)
+        const body = await res.json().catch(() => ({}))
+        const clientId = body.clientId ?? ''
+        router.push(`/elegir-plan?client_id=${clientId}`)
       } else {
         const body = await res.json().catch(() => ({}))
         setSubmitError(body.error || 'Error al enviar la solicitud. Por favor, inténtalo de nuevo.')

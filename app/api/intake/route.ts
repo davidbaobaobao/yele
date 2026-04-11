@@ -190,7 +190,7 @@ export async function POST(req: Request) {
         .catch((err: unknown) => console.error('[intake] Confirmation email error:', err))
     }
 
-    return NextResponse.json({ ok: true, slug }, { status: 201 })
+    return NextResponse.json({ ok: true, slug, clientId }, { status: 201 })
   } catch (err) {
     console.error('[intake] Unexpected error:', err)
     return NextResponse.json(
