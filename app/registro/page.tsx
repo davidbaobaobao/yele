@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { createBrowserClient } from '@supabase/auth-helpers-nextjs'
 
 const BASE_URL =
@@ -16,14 +16,19 @@ function getSupabaseBrowser() {
 }
 
 export default function RegistroPage() {
-  const supabase = getSupabaseBrowser()
+  // Stable ref so the client is never recreated on re-render
+  const supabaseRef = useRef(getSupabaseBrowser())
+  const supabase = supabaseRef.current
 
   const [email, setEmail]           = useState('')
   const [emailSent, setEmailSent]   = useState(false)
   const [loading, setLoading]       = useState(false)
   const [error, setError]           = useState<string | null>(null)
 
-  async function handleGoogle() {
+  async function handleGoogle(e: React.MouseEvent) {
+    e.preventDefault()
+    e.stopPropagation()
+    console.log('handleGoogle called')
     setError(null)
     setLoading(true)
     const { error: err } = await supabase.auth.signInWithOAuth({
@@ -284,7 +289,7 @@ export default function RegistroPage() {
               <button
                 type="button"
                 className="btn-google"
-                onClick={handleGoogle}
+                onClick={(e) => handleGoogle(e)}
                 disabled={loading}
               >
                 <GoogleIcon />
