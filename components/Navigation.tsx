@@ -87,7 +87,7 @@ export default function Navigation() {
               quiero mi web
             </Link>
             <a
-              href={process.env.NEXT_PUBLIC_DASHBOARD_URL ?? 'https://app.yele.design'}
+              href={`${process.env.NEXT_PUBLIC_DASHBOARD_URL ?? 'https://app.yele.design'}/login`}
               style={{
                 display: 'inline-block',
                 padding: '8px 16px',
