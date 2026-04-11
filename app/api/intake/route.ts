@@ -160,8 +160,8 @@ export async function POST(req: Request) {
 
     const clientId: string = inserted?.id ?? 'desconocido'
 
-    // Fire-and-forget email — don't block the 201 response on it
-    sendIntakeEmail({
+    // Fire-and-forget: internal PDF + client confirmation — don't block the 201
+    const emailParams = {
       clientId,
       businessName,
       industry,
@@ -180,7 +180,15 @@ export async function POST(req: Request) {
       extraInfo,
       hasWebsite,
       websiteUrl,
-    }).catch(err => console.error('[intake] Email send error:', err))
+    }
+
+    sendIntakeEmail(emailParams)
+      .catch(err => console.error('[intake] Internal email error:', err))
+
+    if (email) {
+      sendClientConfirmationEmail(emailParams)
+        .catch((err: unknown) => console.error('[intake] Confirmation email error:', err))
+    }
 
     return NextResponse.json({ ok: true, slug }, { status: 201 })
   } catch (err) {
@@ -242,5 +250,83 @@ async function sendIntakeEmail(params: {
         content: pdfBuffer,
       },
     ],
+  })
+}
+
+async function sendClientConfirmationEmail(params: {
+  businessName: string
+  email: string
+  phone?: string
+  preferredContact?: string
+  whatsappNumber?: string
+}) {
+  const resendKey = process.env.RESEND_API_KEY
+  if (!resendKey) return
+
+  const { businessName, email, phone, preferredContact, whatsappNumber } = params
+
+  const contactBlurb =
+    preferredContact === 'whatsapp'
+      ? `<p style="font-size:15px;color:#2D3F52;line-height:1.65;margin:0 0 24px;">Nos has indicado que prefieres que te contactemos por <strong>WhatsApp</strong>. Te escribiremos al <strong>${whatsappNumber ?? ''}</strong> en breve.</p>`
+      : preferredContact === 'email'
+      ? `<p style="font-size:15px;color:#2D3F52;line-height:1.65;margin:0 0 24px;">Nos has indicado que prefieres que te contactemos por <strong>email</strong>. Te escribiremos a <strong>${email}</strong> en breve.</p>`
+      : preferredContact === 'telefono'
+      ? `<p style="font-size:15px;color:#2D3F52;line-height:1.65;margin:0 0 24px;">Nos has indicado que prefieres que te contactemos por <strong>teléfono</strong>. Te llamaremos al <strong>${phone ?? ''}</strong> en breve.</p>`
+      : ''
+
+  const dashboardUrl = process.env.NEXT_PUBLIC_DASHBOARD_URL ?? 'https://app.yele.design'
+
+  const html = `
+<div style="font-family:'DM Sans',Arial,sans-serif;max-width:560px;margin:0 auto;color:#1E2B3A;">
+
+  <div style="padding:40px 0 24px;">
+    <div style="font-size:22px;font-weight:600;color:#0F1923;letter-spacing:-0.02em;">
+      yele<span style="color:#688c76;">.</span>
+    </div>
+  </div>
+
+  <h1 style="font-size:28px;font-weight:600;color:#0F1923;margin:0 0 16px;letter-spacing:-0.02em;">
+    Hemos recibido tu solicitud.
+  </h1>
+
+  <p style="font-size:16px;color:#2D3F52;line-height:1.65;margin:0 0 24px;">
+    Hola, gracias por confiar en Yele para crear la web de <strong>${businessName}</strong>.
+    Hemos recibido toda tu información y ya estamos trabajando en ello.
+  </p>
+
+  <div style="background:#F5F2EE;border-radius:10px;padding:24px;margin:0 0 24px;">
+    <div style="font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:#8A9BAD;margin-bottom:12px;">
+      Próximos pasos
+    </div>
+    <div style="font-size:15px;color:#1E2B3A;line-height:1.7;">
+      <div style="margin-bottom:8px;">① Revisamos tu solicitud en las próximas horas</div>
+      <div style="margin-bottom:8px;">② Nos ponemos en contacto contigo para confirmar los detalles</div>
+      <div style="margin-bottom:8px;">③ Empezamos a construir tu web — lista en 3–5 días</div>
+    </div>
+  </div>
+
+  ${contactBlurb}
+
+  <div style="margin:32px 0;">
+    <a href="${dashboardUrl}"
+      style="display:inline-block;background:#1c1c18;color:#fcf9f3;font-weight:600;font-size:14px;padding:14px 28px;border-radius:0;text-decoration:none;">
+      Acceder a mi panel →
+    </a>
+  </div>
+
+  <p style="font-size:13px;color:#8A9BAD;line-height:1.6;margin:32px 0 0;border-top:1px solid #E8E4DF;padding-top:24px;">
+    Yele · yele.design<br/>
+    Si tienes alguna pregunta, responde a este email o escríbenos a info@yele.design
+  </p>
+
+</div>
+`
+
+  const resend = new Resend(resendKey)
+  await resend.emails.send({
+    from:    'info@yele.design',
+    to:      email,
+    subject: `Hemos recibido tu solicitud — ${businessName}`,
+    html,
   })
 }
