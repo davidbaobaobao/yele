@@ -15,9 +15,9 @@ const PLANS = [
   {
     id: 'basica' as const,
     name: 'Básica',
-    monthlyPrice: 19.90,
-    annualPrice: 190.80,
-    annualMonthly: 15.90,
+    monthlyPrice: 29.90,
+    annualPrice: 299.00,
+    annualMonthly: 24.92,
     description: 'Hasta 4 páginas',
     popular: false,
     features: [
@@ -31,9 +31,9 @@ const PLANS = [
   {
     id: 'profesional' as const,
     name: 'Profesional',
-    monthlyPrice: 29,
-    annualPrice: 278.40,
-    annualMonthly: 23.20,
+    monthlyPrice: 49,
+    annualPrice: 499.00,
+    annualMonthly: 41.58,
     description: 'Hasta 6 páginas',
     popular: true,
     features: [
@@ -50,9 +50,9 @@ const PLANS = [
   {
     id: 'avanzada' as const,
     name: 'Avanzada',
-    monthlyPrice: 59,
-    annualPrice: 566.40,
-    annualMonthly: 47.20,
+    monthlyPrice: 89,
+    annualPrice: 899.00,
+    annualMonthly: 74.92,
     description: 'Sin límites',
     popular: false,
     features: [
