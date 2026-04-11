@@ -3,11 +3,6 @@
 import { useState, useRef } from 'react'
 import { createBrowserClient } from '@supabase/auth-helpers-nextjs'
 
-const BASE_URL =
-  typeof window !== 'undefined'
-    ? window.location.origin
-    : (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://yele.design')
-
 function getSupabaseBrowser() {
   return createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -33,7 +28,7 @@ export default function RegistroPage() {
     setLoading(true)
     const { error: err } = await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: `${BASE_URL}/auth/callback` },
+      options: { redirectTo: `${window.location.origin}/auth/callback` },
     })
     if (err) {
       setError('No se pudo conectar con Google. Inténtalo de nuevo.')
@@ -50,7 +45,7 @@ export default function RegistroPage() {
     setLoading(true)
     const { error: err } = await supabase.auth.signInWithOtp({
       email: email.trim(),
-      options: { emailRedirectTo: `${BASE_URL}/auth/callback` },
+      options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
     })
     setLoading(false)
     if (err) {
