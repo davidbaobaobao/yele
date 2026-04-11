@@ -1,14 +1,10 @@
 'use client'
 
-import { useState, useEffect, Suspense } from 'react'
-import { useSearchParams, useRouter } from 'next/navigation'
+import { useState, Suspense } from 'react'
+import { useSearchParams } from 'next/navigation'
 
-// ─── Price IDs (set via env vars in Stripe Dashboard) ─────────────────────────
-const PRICE_IDS = {
-  basica:       { monthly: process.env.NEXT_PUBLIC_STRIPE_PRICE_BASICA_MONTHLY       ?? '', annual: process.env.NEXT_PUBLIC_STRIPE_PRICE_BASICA_ANNUAL       ?? '' },
-  profesional:  { monthly: process.env.NEXT_PUBLIC_STRIPE_PRICE_PROFESIONAL_MONTHLY  ?? '', annual: process.env.NEXT_PUBLIC_STRIPE_PRICE_PROFESIONAL_ANNUAL  ?? '' },
-  avanzada:     { monthly: process.env.NEXT_PUBLIC_STRIPE_PRICE_AVANZADA_MONTHLY     ?? '', annual: process.env.NEXT_PUBLIC_STRIPE_PRICE_AVANZADA_ANNUAL     ?? '' },
-}
+// Price IDs are resolved server-side in /api/create-checkout.
+// The frontend only sends planId + billingPeriod.
 
 // ─── Plan data ─────────────────────────────────────────────────────────────────
 const PLANS = [
@@ -73,7 +69,6 @@ const PLANS = [
 
 function ElegirPlanContent() {
   const searchParams = useSearchParams()
-  const router = useRouter()
   const clientId = searchParams.get('client_id') ?? ''
 
   const [billing, setBilling] = useState<'monthly' | 'annual'>('monthly')
@@ -81,36 +76,33 @@ function ElegirPlanContent() {
   const [promoApplied, setPromoApplied] = useState(false)
   const [promoError, setPromoError] = useState('')
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null)
+  const [checkoutError, setCheckoutError] = useState('')
 
   function handleApplyPromo() {
     const trimmed = promoCode.trim().toUpperCase()
     if (!trimmed) return
-    // Optimistic validation — real validation happens server-side in Stripe
+    // Optimistic — real validation happens server-side in Stripe
     setPromoApplied(true)
     setPromoError('')
   }
 
   async function handleSelectPlan(planId: 'basica' | 'profesional' | 'avanzada') {
-    const priceId = PRICE_IDS[planId][billing]
-    if (!priceId) {
-      alert('Plan no disponible. Por favor, contacta con nosotros.')
-      return
-    }
     setLoadingPlan(planId)
+    setCheckoutError('')
     try {
       const res = await fetch('/api/create-checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          priceId,
+          planId,
+          billingPeriod: billing,
           clientId,
           promoCode: promoApplied ? promoCode.trim() : null,
-          billingPeriod: billing,
         }),
       })
       const { url, error } = await res.json()
       if (error || !url) {
-        alert('Error al crear la sesión de pago. Por favor, inténtalo de nuevo.')
+        setCheckoutError(error || 'Error al crear la sesión de pago. Por favor, inténtalo de nuevo.')
         setLoadingPlan(null)
         return
       }
@@ -444,6 +436,21 @@ function ElegirPlanContent() {
               </div>
             ))}
           </div>
+
+          {/* Checkout error */}
+          {checkoutError && (
+            <p style={{
+              fontFamily: 'var(--font-inter), sans-serif',
+              fontSize: 13,
+              fontWeight: 300,
+              color: '#c0392b',
+              margin: '0 0 8px',
+              width: '100%',
+              maxWidth: 860,
+            }}>
+              {checkoutError}
+            </p>
+          )}
 
           {/* Promo code */}
           <div className="promo-section">
