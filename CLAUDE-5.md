@@ -1,5 +1,5 @@
 # CLAUDE.md — Spanish SME Website Generator
-# Vitrina Studio · v3.0 · Marzo 2026
+# Vitrina Studio · v4.0 · Abril 2026
 
 ## Always Do First
 - **Invoke the `frontend-design` skill** before writing any frontend code, every session, no exceptions.
@@ -9,6 +9,8 @@
   If brand.md does not exist, use DEFAULT_PALETTE (see Colors section) and mark with TODO.
 - **Check `brand_assets/`** for logos, photos, and any uploaded assets.
   Use them. Do not use placeholders where real assets are available.
+- **Check BUILD.md for dynamic sections** — any section marked `dynamic: true` must fetch
+  from Supabase, not use hardcoded content. See Dynamic Sections below.
 
 ---
 
@@ -81,6 +83,7 @@ State the three values at the start of every session:
 - **Styling**: Tailwind CSS — but never default palette colors (see Anti-Generic Guardrails)
 - **Fonts**: Google Fonts — loaded via next/font. Never system fonts.
 - **Images**: next/image with proper alt text in Spanish
+- **Database**: Supabase (for dynamic sections only — see Dynamic Sections below)
 - **Dev server**: `npm run dev` at `http://localhost:3000`
 - **Deploy**: Vercel (`vercel deploy`)
 - **Language**: Spanish everywhere. No English in UI, copy, labels, or meta tags.
@@ -94,10 +97,194 @@ BUILD.md is the single source of truth for each client. It contains:
 - All real content (services, prices, hours, testimonials)
 - Reference component styles from 21st.dev
 - Anti-patterns specific to this client
+- Dynamic section flags (which sections fetch from Supabase)
 
 **If real content exists in BUILD.md, use it.**
 **Never use Lorem ipsum, placeholder names, or invented services in production builds.**
 **Never use "Your Business Name" or "Add your text here" in any output.**
+
+---
+
+## Dynamic Sections — Supabase Integration
+
+This is critical. Read this section before building any client site.
+
+Some sections in BUILD.md are marked `dynamic: true` with a `table:` field.
+These sections must fetch their content from Supabase at runtime.
+They must NOT use hardcoded content from BUILD.md.
+
+The client manages this content from their dashboard at app.yele.design.
+When they add, edit, or remove items, the live site updates automatically within 60 seconds.
+
+### Environment variables required for every client project
+
+Create `.env.local` in the project root:
+```
+NEXT_PUBLIC_SUPABASE_URL=https://wdnwacdkoowrrnyaskjl.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=[anon key — get from David]
+NEXT_PUBLIC_CLIENT_ID=[client UUID from Supabase clients table]
+```
+
+### Supabase client — create once per project
+
+Create `lib/supabase.ts`:
+```typescript
+import { createClient } from '@supabase/supabase-js'
+
+export const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+)
+```
+
+Install if needed: `npm install @supabase/supabase-js`
+
+### Dynamic section pattern — use this exactly
+
+Every section marked `dynamic: true` in BUILD.md must be a Next.js
+server component using this pattern:
+
+```typescript
+import { supabase } from '@/lib/supabase'
+
+// ISR — rebuilds in background every 60 seconds
+export const revalidate = 60
+
+export default async function DynamicSection() {
+  const { data, error } = await supabase
+    .from('TABLE_NAME')           // from BUILD.md table: field
+    .select('*')
+    .eq('client_id', process.env.NEXT_PUBLIC_CLIENT_ID)
+    .eq('visible', true)          // only show visible items
+    .order('sort_order', { ascending: true })
+
+  // Always handle empty state — hide section entirely if no data
+  if (error || !data || data.length === 0) return null
+
+  return (
+    <section>
+      {data.map(item => (
+        // render each item using brand tokens, never hardcoded colors
+      ))}
+    </section>
+  )
+}
+```
+
+### Table mapping — which table for each section type
+
+```
+MENU / CARTA
+  table:  catalog_items
+  fields: category, name, description, price, available
+  group:  by category (Entrantes / Principales / Postres)
+  filter: available = true only
+  render: show price_label if exists, else format price as €X.XX
+
+SERVICES / SERVICIOS
+  table:  services
+  fields: name, description, price, price_label
+  filter: visible = true
+  render: show price_label if exists, else price — never show null price
+
+TEAM / EQUIPO
+  table:  team_members
+  fields: name, role, bio, photo_url
+  filter: visible = true
+  render: photo optional — gracefully handle missing photo_url
+
+TESTIMONIALS / TESTIMONIOS
+  table:  testimonials
+  fields: author_name, role, body, rating
+  filter: visible = true
+  render: show stars if rating > 0, role label optional
+
+FAQS
+  table:  faqs
+  fields: question, answer
+  filter: visible = true
+  render: accordion pattern, question bold, answer body text
+
+OFFERS / OFERTAS
+  table:  offers
+  fields: title, description, badge_text, valid_until, active
+  filter: active = true
+          AND (valid_until IS NULL OR valid_until > NOW())
+  render: badge_text as pill, valid_until as "Hasta [date]"
+
+LISTINGS / PROPIEDADES
+  table:  listings
+  fields: title, type, price, size_m2, rooms, bathrooms,
+          location, description, images
+  filter: active = true
+  render: type as "Venta" / "Alquiler" badge
+          price formatted as €XXX.XXX
+          images[0] as card thumbnail
+
+GALLERY / GALERÍA
+  table:  gallery
+  fields: image_url, caption, category
+  filter: visible = true
+  render: group by category if multiple categories exist
+          masonry or grid layout depending on DENSITY dial
+```
+
+### Empty state rule — mandatory
+
+Every dynamic section must handle empty data gracefully:
+- If Supabase returns 0 rows → return null (section disappears entirely)
+- Never show an empty grid, blank cards, or placeholder text
+- Never show "No hay elementos" to the visitor — just hide the section
+- The section reappears automatically when the client adds content
+
+### ISR revalidation — mandatory on all dynamic sections
+
+```typescript
+export const revalidate = 60
+```
+
+This tells Next.js to rebuild the page cache in the background every 60 seconds.
+Visitors always get a fast cached page. Client edits appear within 60 seconds.
+Never use `revalidate = 0` (disables caching) — this would make every request
+hit Supabase directly and slow down the site for visitors.
+
+### Static vs dynamic — decision rule
+
+```
+dynamic: true  in BUILD.md → fetch from Supabase, use table: field
+dynamic: false in BUILD.md → use hardcoded content from BUILD.md
+not specified              → use hardcoded content from BUILD.md
+
+ALWAYS dynamic (client edits these regularly):
+  ✓ Food menu / carta
+  ✓ Property listings
+  ✓ Offers and promotions
+  ✓ Gallery photos
+
+USUALLY dynamic (set in workflow Phase 6):
+  ✓ Services list
+  ✓ Team members
+  ✓ Testimonials
+  ✓ FAQs
+
+ALWAYS static (never changes without a rebuild):
+  ✗ Hero section (headline, CTA, background)
+  ✗ About / story section
+  ✗ Contact information (phone, email, address)
+  ✗ Navigation and footer
+  ✗ Legal pages (aviso legal, privacidad, cookies)
+```
+
+### Build order for projects with dynamic sections
+
+1. Set up `.env.local` with Supabase credentials first
+2. Create `lib/supabase.ts`
+3. Build all static sections as normal (from BUILD.md)
+4. Build dynamic sections last, using the fetch pattern above
+5. Test each dynamic section with real data from Supabase
+6. Confirm empty state works (temporarily empty the table, check section hides)
+7. Run `npm run build` — fix any errors
+8. Deploy to Vercel — confirm dynamic data loads on production URL
 
 ---
 
@@ -122,8 +309,6 @@ After building each section, take a screenshot for comparison review.
 - Review the screenshot against BUILD.md requirements
 - Check mobile at 390px width (iPhone viewport) — use Chrome DevTools device toolbar
 - Do at least **2 review rounds** per section before moving to the next
-- Be specific when reporting mismatches: "headline font weight is 400 but should be 700",
-  "CTA button is 36px height but needs 48px minimum for touch targets"
 
 **Review checklist per section:**
 ```
@@ -136,7 +321,8 @@ After building each section, take a screenshot for comparison review.
 □ No placeholder content anywhere
 □ Interactive states exist on all clickable elements
 □ Images have descriptive alt text in Spanish
-□ Glassmorphism (if used) follows the approved rules below
+□ Dynamic sections: confirm data loads from Supabase (check network tab)
+□ Dynamic sections: confirm empty state hides section cleanly
 ```
 
 ---
@@ -292,202 +478,50 @@ Change the token once → updates everywhere. No hex hunting.
 /* Temporary professional neutral — replace when brand.md is generated */
 --color-primary:    #1A1F36;   /* deep navy */
 --color-secondary:  #2D3561;   /* medium navy */
---color-accent:     #0066FF;   /* electric blue */
---color-dark:       #0D1017;   /* near black */
---color-light:      #F4F6FA;   /* cool near white */
---color-neutral:    #CBD5E1;   /* slate grey */
-```
-Mark any file using DEFAULT_PALETTE with: `/* TODO: replace with brand.md tokens */`
-
-**Dark mode:**
-Design light and dark variants together. Dark mode uses desaturated/lighter
-tonal variants — never inverted colors. Test contrast separately in both modes.
-
-**Shadows:**
-- Never use flat `shadow-md` or `shadow-lg` as the only shadow
-- Shadows must be color-tinted to the brand palette — not generic black:
-  ```css
-  /* Wrong — generic black shadow */
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-
-  /* Correct — tinted to brand primary */
-  box-shadow: 0 1px 2px rgba(PRIMARY_RGB, 0.04),
-              0 4px 12px rgba(DARK_RGB, 0.06),
-              0 12px 32px rgba(PRIMARY_RGB, 0.08);
-  ```
-- Replace DARK_RGB and PRIMARY_RGB with actual brand color RGB values from brand.md
-- A terracotta brand casts terracotta-tinted shadows — not grey ones
-
-**Typography:**
-- Never use the same font for headings and body text
-- Always pair: one distinctive display/serif font + one clean readable sans
-- Apply tight tracking (`-0.03em` to `-0.05em`) on large headings
-- Apply generous line-height (`1.7` to `1.8`) on body text
-- Minimum body font size: 17px — never smaller for body copy
-- Forbidden fonts for headlines: Inter, Roboto, Arial, system-ui, sans-serif generic
-
-**Gradients:**
-- Layer multiple radial gradients for depth — not single linear washes
-- Add grain/texture via SVG noise filter for organic atmosphere:
-  ```css
-  /* Grain overlay — add as pseudo-element */
-  background-image: url("data:image/svg+xml,...");
-  opacity: 0.03;
-  ```
-
-**Glassmorphism — approved usage rules:**
-Glass effects are an approved technique for dark hero sections and photography backgrounds.
-They are BANNED on flat washi/light surfaces and banned with neon/tech-adjacent colors.
-
-```
-APPROVED — dark background (ink #141410 or photography):
-  background:   rgba(20, 20, 16, 0.35)       ← ink-tinted, never white-tinted
-  border:       0.5px solid rgba(196, 169, 106, 0.25)  ← kintsugi gold edge
-  backdrop-filter: blur(12px)
-  border-radius: var(--radius-sm)             ← 1–3px, never large round corners
-
-APPROVED — sticky nav over hero photography:
-  Same recipe above. Gold border glows against dark. On-brand, refined.
-
-CONDITIONALLY OK — light surface with texture/photo behind it:
-  background:   rgba(255, 255, 255, 0.55)
-  border:       0.5px solid rgba(200, 196, 184, 0.5)
-  Only when there is a rich texture or photograph behind the glass panel.
-  Never on a flat washi (#F4F1EA) background — effect disappears.
-
-BANNED — neon/tech glass (destroys Vitrina positioning):
-  Never use: rgba(150, 100, 255, ...) backgrounds
-  Never use: glowing borders in blue, purple, or teal
-  Never use: glass on plain white or near-white without a background image
-  Never use: glass effects on more than 3 elements per page — use sparingly
-
-PERFORMANCE:
-  backdrop-filter is GPU-accelerated but heavy on mobile.
-  Only apply to elements that are ≤30% of the viewport height.
-  Always provide a fallback for browsers without backdrop-filter support:
-  @supports not (backdrop-filter: blur(1px)) {
-    background: rgba(20, 20, 16, 0.85);  ← opaque fallback
-  }
+--color-accent:     #C4622D;   /* terracotta */
+--color-dark:       #0D0F1A;   /* near black */
+--color-light:      #F5F3EE;   /* warm white */
+--color-neutral:    #D4CFC8;   /* warm grey */
 ```
 
-**Animations:**
-- Only animate `transform` and `opacity` — never `transition-all`
-- When MOTION_INTENSITY ≥ 5: use spring physics on ALL interactive elements:
-  ```js
-  // Framer Motion — spring easing
-  transition={{ type: "spring", stiffness: 80, damping: 18 }}
-  ```
-- When MOTION_INTENSITY < 5: use simple ease: `cubic-bezier(0.34, 1.56, 0.64, 1)`
-- One orchestrated page load with staggered reveals per page
-- Micro-interactions: 150–300ms
-- Complex transitions: ≤400ms — never exceed 500ms
-- Exit animations: 60–70% of enter duration (feels more responsive)
-- Stagger list/grid items: 30–50ms per item:
-  ```css
-  animation-delay: calc(var(--index) * 40ms);
-  ```
-- Easing: ease-out for entering elements, ease-in for exiting
-- Scroll-triggered reveals: `translateY(16px) + opacity:0` resolving over 600ms
-  with `cubic-bezier(0.16, 1, 0.3, 1)`. Use IntersectionObserver — never window scroll listener.
-- Scroll-driven clip-path reveals for cinematic sections (when MOTION_INTENSITY ≥ 7):
-  ```css
-  clip-path: inset(0 100% 0 0) → inset(0 0% 0 0)
-  transition: clip-path 0.8s cubic-bezier(0.16, 1, 0.3, 1)
-  ```
-- Magnetic buttons (when MOTION_INTENSITY ≥ 6):
-  CRITICAL — NEVER use React useState for magnetic hover.
-  Use EXCLUSIVELY Framer Motion useMotionValue + useTransform outside render cycle:
-  ```js
-  const x = useMotionValue(0)
-  const y = useMotionValue(0)
-  // update in onMouseMove handler — NOT setState
-  ```
-- Background ambient motion: slow radial gradient blob
-  (animation-duration: 20s+, opacity: 0.02–0.04, position:fixed, pointer-events:none)
+**Typography rules:**
+- Never use Inter or Roboto as headline/display fonts
+- Never use the same font for display and body — always a distinct pairing
+- Google Fonts only — loaded via `next/font/google`, never `@import`
+- Display font: loaded with `display: 'swap'`
+- Body font: 400 (regular) + 500 (medium) + 600 (semibold) weights minimum
 
-**Animation library separation — CRITICAL:**
-```
-Framer Motion     → UI interactions, page transitions, scroll reveals,
-                    hover states, shared element transitions, bento layouts
-GSAP/ScrollTrigger → full-page scrolltelling, canvas scroll sequences,
-                     complex timeline orchestration, 3D scroll effects
-ThreeJS/WebGL     → canvas backgrounds, 3D scenes, particle systems
-
-NEVER mix GSAP/ThreeJS with Framer Motion in the same component tree.
-When using GSAP or ThreeJS: wrap in useEffect with strict cleanup.
-```
-
-**Interactive States:**
-Every clickable element needs all four states — no exceptions:
-```css
-.cta-button { /* default */ }
-.cta-button:hover {
-  transform: translateY(-2px);
-  box-shadow: [enhanced shadow];
-}
-.cta-button:focus-visible {
-  outline: 2px solid var(--color-accent);
-  outline-offset: 3px;
-}
-.cta-button:active { transform: translateY(0px); }
-```
-
-**Images:**
-- Add gradient overlay on hero images: `bg-gradient-to-t from-black/60 via-transparent`
-- Add color treatment layer with `mix-blend-multiply` for brand cohesion
+**Layout rules:**
+- Never use a centered hero when DESIGN_VARIANCE > 4 — use offset/asymmetric
+- Never use a generic white background with blue buttons — always brand palette
+- Never use stock photo people — use abstract, product, or environment photography
 - Always use `next/image` — never raw `<img>` tags
-- Always include descriptive Spanish alt text
 
-**Spacing:**
-- Define spacing tokens in Tailwind config — not random utility class combinations
-- Consistent section padding: `py-16 md:py-24 lg:py-32`
-- Never mix spacing units randomly
+**Glassmorphism (when BUILD.md calls for it):**
+```css
+/* Approved ink-tinted glass — dark/photo backgrounds only */
+background: rgba(14, 18, 22, 0.65);
+backdrop-filter: blur(12px);
+border: 1px solid rgba(255,255,255,0.08);
 
-**Hero Layout — Anti-Center Bias:**
-When DESIGN_VARIANCE > 4, centered hero sections are strictly banned.
-Use one of these layouts instead:
-```
-Split Screen:     50/50 — text left, image/video right (or reversed)
-Left Aligned:     text left-aligned, asset floats right with overlap
-Asymmetric:       text takes 60%, visual takes 40% with generous negative space
-Diagonal:         text block at angle, or image crops diagonally into text zone
-```
-Stop doing centered text over a dark image. It is the most recognizable
-AI output pattern and makes every site look generated.
-Exception: DESIGN_VARIANCE ≤ 4 (clinics, trades) — centered is acceptable.
-
-**Component State Completeness:**
-Every interactive component must implement ALL states — not just the success state.
-
-```
-Loading state:   Skeletal loaders matching exact layout shape
-                 DO NOT use generic circular spinners
-                 Use: div with animate-pulse matching element dimensions
-
-Empty state:     Beautifully composed — shows how to populate the data
-                 Include a call-to-action within the empty state
-
-Error state:     Friendly Spanish message + recovery action
-                 Never show raw error strings to users
-
-Hover state:     Every clickable element — no exceptions
-
-Disabled state:  Visually distinct — opacity 0.5 + cursor not-allowed
-                 DO NOT just remove the onClick handler
+/* NEVER use on flat light backgrounds */
+/* NEVER use neon/purple/blue-glowing glass */
+/* NEVER apply to elements >30% of viewport — GPU performance */
 ```
 
-**Depth System:**
+**Z-index scale — never deviate:**
 ```
-Base layer:   page background, section backgrounds        z-index: 0
-Elevated:     cards, panels, form elements                z-index: 10
-Floating:     modals, dropdowns, tooltips, sticky nav     z-index: 20–40
-Modal:        modal dialogs, sheets                       z-index: 100
-Toast:        notification toasts, alerts                 z-index: 1000
+0     normal flow
+10    sticky elements (nav)
+20    dropdowns, tooltips
+40    modals, drawers
+100   notifications, toasts
+1000  critical overlays
 ```
-No two cards should sit at exactly the same visual depth.
-Never assign arbitrary z-index values outside this scale.
 
-**Accessibility — Priority 1 (CRITICAL):**
+---
+
+## Accessibility — Priority 1 (CRITICAL)
 ```
 Contrast:       4.5:1 minimum for normal text, 3:1 for large text
                 Glass elements must still pass — test text on blurred bg
@@ -543,6 +577,9 @@ DO NOT validate forms on keystroke — validate on blur
 DO NOT use glassmorphism on flat light backgrounds — only on dark/photo backgrounds
 DO NOT use neon/purple/blue-glowing glass — ink-tinted glass only (rgba 20,20,16)
 DO NOT apply backdrop-filter to elements covering >30% of viewport — performance
+DO NOT hardcode content in dynamic sections — always fetch from Supabase
+DO NOT use revalidate = 0 on dynamic sections — always use revalidate = 60
+DO NOT show empty grids or blank sections — return null if no Supabase data
 ```
 
 **Anti-AI Copywriting — Banned Words:**
@@ -585,36 +622,42 @@ Never rebuild from scratch when upgrading. Diagnose first.
 
 ```
 1.  Read FRAMEWORK.md — understand business context and scope
-2.  Read BUILD.md completely — client brief and requirements
+2.  Read BUILD.md completely — client brief, requirements, dynamic section flags
 3.  Read brand_assets/brand.md — all color tokens and font names
     If brand.md missing → use DEFAULT_PALETTE, mark files with TODO
 4.  Read all files in /reference-components/
 5.  Check brand_assets/ for logos, photos, assets
-6.  Invoke frontend-design skill
-7.  Declare the three design dials from BUILD.md personality:
+6.  Check .env.local exists with Supabase credentials (required for dynamic sections)
+7.  Invoke frontend-design skill
+8.  Declare the three design dials from BUILD.md personality:
     "VARIANCE:[N] / MOTION:[N] / DENSITY:[N]"
-8.  State your aesthetic direction out loud before writing code:
+9.  State your aesthetic direction out loud before writing code:
     "I'm committing to [direction] because [reason from BUILD.md]"
-9.  Build ONE section at a time
-10. Screenshot and review against checklist
-11. Fix all issues found
-12. Screenshot again — confirm fixed
-13. Only then move to next section
+10. List all dynamic sections from BUILD.md with their Supabase table names
+11. Build ONE section at a time
+12. Screenshot and review against checklist
+13. Fix all issues found
+14. Screenshot again — confirm fixed
+15. Only then move to next section
 ```
 
 **Section build order (standard):**
 ```
 1. Tailwind config + CSS variables + font setup
-2. Navigation / Header (glassmorphic if hero uses dark photography)
-3. Hero section
-4. Services / Features section
-5. About / Story section
-6. Testimonials (if in BUILD.md)
-7. Contact section (phone, WhatsApp, map if required)
-8. Footer (with legal links)
-9. SEO meta tags on all pages
-10. Mobile review pass — full site at 390px
-11. Performance check (npm run build — fix any errors)
+2. lib/supabase.ts (if project has dynamic sections)
+3. Navigation / Header (glassmorphic if hero uses dark photography)
+4. Hero section (always static)
+5. Services / Features section (static or dynamic per BUILD.md)
+6. Dynamic sections (menu, listings, team, etc.) — fetch pattern
+7. About / Story section (always static)
+8. Testimonials (static or dynamic per BUILD.md)
+9. Gallery (static or dynamic per BUILD.md)
+10. Contact section (phone, WhatsApp, map if required — always static)
+11. Footer (with legal links — always static)
+12. SEO meta tags on all pages
+13. Mobile review pass — full site at 390px
+14. Performance check (npm run build — fix any errors)
+15. Verify dynamic sections load data in production (check Vercel deployment)
 ```
 
 ---
@@ -630,6 +673,7 @@ Never rebuild from scratch when upgrading. Diagnose first.
 - No render-blocking scripts — load third-party scripts `async` or `defer`
 - `backdrop-filter` only on elements ≤30% viewport height — GPU cost
 - Target: Google PageSpeed 85+ on mobile, CLS < 0.1, LCP < 2.5s
+- Dynamic sections use `revalidate = 60` — never 0
 
 **Legal (Spanish law — mandatory on every site):**
 ```
@@ -683,6 +727,8 @@ Spanish SME clients receive most enquiries via phone and WhatsApp. Prioritise th
 │   └── MEDIA_BRIEF.md
 ├── reference-components/
 │   └── [21st.dev components]
+├── lib/
+│   └── supabase.ts              ← Supabase client (only if dynamic sections exist)
 ├── app/
 │   ├── layout.tsx
 │   ├── page.tsx
@@ -692,12 +738,19 @@ Spanish SME clients receive most enquiries via phone and WhatsApp. Prioritise th
 ├── components/
 │   ├── Navigation.tsx
 │   ├── Hero.tsx
-│   ├── Services.tsx
+│   ├── Services.tsx             ← static or dynamic per BUILD.md
+│   ├── Menu.tsx                 ← dynamic (catalog_items) if restaurant
+│   ├── Listings.tsx             ← dynamic (listings) if inmobiliaria
+│   ├── Team.tsx                 ← dynamic (team_members) if applicable
+│   ├── Testimonials.tsx         ← dynamic (testimonials) if applicable
+│   ├── Gallery.tsx              ← dynamic (gallery) if applicable
+│   ├── FAQs.tsx                 ← dynamic (faqs) if applicable
+│   ├── Offers.tsx               ← dynamic (offers) if applicable
 │   ├── About.tsx
-│   ├── Testimonials.tsx
 │   ├── Contact.tsx
 │   └── Footer.tsx
 ├── public/images/
 ├── tailwind.config.js
-└── next.config.js
+├── next.config.js
+└── .env.local                   ← NEVER commit this — contains Supabase keys
 ```
