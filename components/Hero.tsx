@@ -12,57 +12,67 @@ const ELEMENTS = [
   { id: 5, label: 'Dentista'    },
   { id: 6, label: 'Entrenador'  },
 ]
-const TOTAL = ELEMENTS.length
+const TOTAL              = ELEMENTS.length
+const DURATION_PER_ELEM  = 2   // seconds each element shows
+const TOTAL_DURATION     = DURATION_PER_ELEM * TOTAL // 14 s loop
 
-// Wraps an index safely into [0, TOTAL)
 function wrap(i: number) { return ((i % TOTAL) + TOTAL) % TOTAL }
 
 export default function Hero() {
-  const [activeIndex, setActiveIndex]   = useState(0)
-  const [scrambleKey, setScrambleKey]   = useState(0)
-  const [videoReady, setVideoReady]     = useState(false)
-  // Slide direction: 1 = slide left (next), -1 = slide right (prev)
-  const [slideDir, setSlideDir]         = useState(0)
+  const [activeIndex, setActiveIndex] = useState(0)
+  const [scrambleKey,  setScrambleKey]  = useState(0)
+  const [videoReady,   setVideoReady]   = useState(false)
 
-  const stickyRef = useRef<HTMLDivElement>(null)
+  const stickyRef  = useRef<HTMLDivElement>(null)
   const sectionRef = useRef<HTMLElement>(null)
+  const videoRef   = useRef<HTMLVideoElement>(null)
+  const rafRef     = useRef<number>()
 
-  // ── Interval: starts only when video is ready ────────────────
+  // ── FIX 2: rAF loop synced to video.currentTime ───────────────
   useEffect(() => {
     if (!videoReady) return
-    const id = setInterval(() => {
-      setSlideDir(1)
-      setActiveIndex(prev => (prev + 1) % TOTAL)
-      setScrambleKey(prev => prev + 1)
-    }, 2000)
-    return () => clearInterval(id)
+
+    const tick = () => {
+      const video = videoRef.current
+      if (video) {
+        const t        = video.currentTime % TOTAL_DURATION
+        const newIndex = Math.floor(t / DURATION_PER_ELEM)
+        setActiveIndex(prev => {
+          if (prev !== newIndex) {
+            setScrambleKey(k => k + 1)
+            return newIndex
+          }
+          return prev
+        })
+      }
+      rafRef.current = requestAnimationFrame(tick)
+    }
+
+    rafRef.current = requestAnimationFrame(tick)
+    return () => { if (rafRef.current) cancelAnimationFrame(rafRef.current) }
   }, [videoReady])
 
-  // ── Scroll listener: drives CSS custom properties ─────────────
+  // ── Scroll → CSS custom properties ────────────────────────────
   useEffect(() => {
     const section = sectionRef.current
     const sticky  = stickyRef.current
     if (!section || !sticky) return
 
-    function onScroll() {
-      const rect  = section!.getBoundingClientRect()
-      const total = section!.offsetHeight - window.innerHeight
+    const onScroll = () => {
+      const rect  = section.getBoundingClientRect()
+      const total = section.offsetHeight - window.innerHeight
       const p     = Math.max(0, Math.min(1, -rect.top / total))
 
-      // Strip height: 28vh → 85vh
-      sticky!.style.setProperty('--strip-h',      (28 + 57 * p) + 'vh')
-      // Center card dimensions: 38vw×26vh → 72vw×78vh
-      sticky!.style.setProperty('--card-cw',      (38 + 34 * p) + 'vw')
-      sticky!.style.setProperty('--card-ch',      (26 + 52 * p) + 'vh')
-      // Side card opacity: 1 → 0.4
-      sticky!.style.setProperty('--side-opacity', String(1 - 0.6 * p))
-      // Left text: move up and shrink
-      sticky!.style.setProperty('--text-y',       (-30 * p) + 'vh')
-      sticky!.style.setProperty('--text-scale',   String(1 - 0.4 * p))
+      sticky.style.setProperty('--strip-h',      (28 + 57 * p) + 'vh')
+      sticky.style.setProperty('--card-cw',      (52 + 20 * p) + 'vw') // 52 → 72vw
+      sticky.style.setProperty('--card-ch',      (30 + 48 * p) + 'vh') // 30 → 78vh
+      sticky.style.setProperty('--side-opacity', String(1 - 0.6 * p))
+      sticky.style.setProperty('--text-y',       (-30 * p) + 'vh')
+      sticky.style.setProperty('--text-scale',   String(1 - 0.4 * p))
     }
 
     window.addEventListener('scroll', onScroll, { passive: true })
-    onScroll() // init
+    onScroll()
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
@@ -72,19 +82,35 @@ export default function Hero() {
   return (
     <>
       <style>{`
-        /* ── Scroll-driven properties with NO transition (scroll = instant) ── */
         [data-sticky] {
           --strip-h:      28vh;
-          --card-cw:      38vw;
-          --card-ch:      26vh;
+          --card-cw:      52vw;
+          --card-ch:      30vh;
           --side-opacity: 1;
           --text-y:       0vh;
           --text-scale:   1;
         }
 
-        /* ── Responsive overrides ── */
+        /* Center card slides in from right on each index change */
+        @keyframes heroCardIn {
+          from { transform: translateX(48px); opacity: 0; }
+          to   { transform: translateX(0);    opacity: 1; }
+        }
+        .hero-card-center {
+          animation: heroCardIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+        }
+        /* Side cards crossfade */
+        @keyframes heroSideFade {
+          from { opacity: 0; }
+          to   { opacity: var(--side-opacity, 1); }
+        }
+        .hero-card-side {
+          animation: heroSideFade 0.4s ease both;
+        }
+
+        /* Mobile */
         @media (max-width: 767px) {
-          .hero-left  {
+          .hero-left {
             left: 50% !important;
             top: 32% !important;
             transform: translate(-50%, -50%) scale(var(--text-scale, 1)) !important;
@@ -97,23 +123,17 @@ export default function Hero() {
             transform: translate(-50%, -50%) !important;
             text-align: center;
           }
-          .hero-cards  { display: none !important; }
+          .hero-cards { display: none !important; }
           [data-sticky] { --strip-h: 0vh !important; }
         }
-
-        /* ── Card slide animation ── */
-        @keyframes slideInRight  { from { transform: translateX(60px);  opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-        @keyframes slideInLeft   { from { transform: translateX(-60px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-        .card-center { animation: none; }
       `}</style>
 
-      {/* ── Outer section: 250vh for scroll travel ───────────── */}
+      {/* ── 250vh outer section for scroll travel ─────────────── */}
       <section
         ref={sectionRef}
         style={{ position: 'relative', height: '250vh', width: '100%' }}
       >
-
-        {/* ── Sticky viewport ──────────────────────────────────── */}
+        {/* ── Sticky viewport ────────────────────────────────── */}
         <div
           ref={stickyRef}
           data-sticky
@@ -125,25 +145,19 @@ export default function Hero() {
             background: '#0a0a0a',
           }}
         >
+          {/* Static fallback always visible */}
+          <div aria-hidden style={{
+            position: 'absolute', inset: 0,
+            backgroundImage: 'url(/hero-static.jpg)',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            zIndex: 0,
+          }} />
 
-          {/* ── Static image base layer (always present) ──────── */}
-          <div
-            aria-hidden
-            style={{
-              position: 'absolute', inset: 0,
-              backgroundImage: 'url(/hero-static.jpg)',
-              backgroundSize: 'cover',
-              backgroundPosition: 'center',
-              zIndex: 0,
-            }}
-          />
-
-          {/* ── Video — fades in when ready ───────────────────── */}
+          {/* Video fades in on canPlay */}
           <video
-            autoPlay
-            muted
-            loop
-            playsInline
+            ref={videoRef}
+            autoPlay muted loop playsInline
             onCanPlay={() => setVideoReady(true)}
             style={{
               position: 'absolute', inset: 0,
@@ -157,17 +171,14 @@ export default function Hero() {
             <source src="/hero-dash.mp4" type="video/mp4" />
           </video>
 
-          {/* ── Overlay ───────────────────────────────────────── */}
-          <div
-            aria-hidden
-            style={{
-              position: 'absolute', inset: 0,
-              background: 'linear-gradient(to bottom, rgba(0,0,0,0.28) 0%, rgba(0,0,0,0.18) 55%, rgba(0,0,0,0.55) 100%)',
-              zIndex: 2,
-            }}
-          />
+          {/* Overlay */}
+          <div aria-hidden style={{
+            position: 'absolute', inset: 0,
+            background: 'linear-gradient(to bottom, rgba(0,0,0,0.28) 0%, rgba(0,0,0,0.18) 55%, rgba(0,0,0,0.55) 100%)',
+            zIndex: 2,
+          }} />
 
-          {/* ── LEFT — scrambling industry label ─────────────── */}
+          {/* ── LEFT — scramble label, hidden until videoReady ── */}
           <div
             className="hero-left"
             style={{
@@ -177,6 +188,8 @@ export default function Hero() {
               transform: 'translateY(calc(-50% + var(--text-y, 0vh))) scale(var(--text-scale, 1))',
               transformOrigin: 'left center',
               zIndex: 10,
+              // FIX 1: instant hide/show — no transition
+              opacity: videoReady ? 1 : 0,
             }}
           >
             <div style={{
@@ -193,7 +206,7 @@ export default function Hero() {
             </div>
           </div>
 
-          {/* ── RIGHT — static copy ───────────────────────────── */}
+          {/* ── RIGHT — always visible ───────────────────────── */}
           <div
             className="hero-right"
             style={{
@@ -250,7 +263,9 @@ export default function Hero() {
             </a>
           </div>
 
-          {/* ── BOTTOM — 3-panel card strip ───────────────────── */}
+          {/* ── CARDS STRIP — hidden until videoReady ────────── */}
+          {/* FIX 3: margin trick — side cards are 38vw wide but
+              pushed -26vw so only ~12vw shows at each edge       */}
           <div
             className="hero-cards"
             style={{
@@ -261,87 +276,101 @@ export default function Hero() {
               display: 'flex',
               alignItems: 'flex-end',
               justifyContent: 'center',
-              gap: 16,
+              gap: 12,
               zIndex: 10,
+              // FIX 1: instant hide/show on cards too
+              opacity: videoReady ? 1 : 0,
             }}
           >
-            {/* Left panel */}
-            <div style={{
-              width: '26vw',
-              height: '22vh',
-              borderRadius: '12px 12px 0 0',
-              overflow: 'hidden',
-              flexShrink: 0,
-              opacity: 'var(--side-opacity, 1)' as unknown as number,
-              transition: 'opacity 0.5s ease',
-              position: 'relative',
-            }}>
+            {/* Left side card — mostly hidden off-screen left */}
+            <div
+              key={`left-${prevIndex}`}
+              className="hero-card-side"
+              style={{
+                width: '38vw',
+                height: '26vh',
+                borderRadius: '14px 14px 0 0',
+                overflow: 'hidden',
+                flexShrink: 0,
+                marginRight: '-26vw',  // pushes most of card off left edge
+                position: 'relative',
+                opacity: 'var(--side-opacity, 1)' as unknown as number,
+              }}
+            >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src="/website_animation_draft.png" alt={ELEMENTS[prevIndex].label}
                 style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
               <div style={{
                 position: 'absolute', bottom: 0, left: 0, right: 0,
-                padding: '24px 14px 12px',
-                background: 'linear-gradient(to top, rgba(0,0,0,0.7), transparent)',
+                padding: '24px 16px 12px',
+                background: 'linear-gradient(to top, rgba(0,0,0,0.6), transparent)',
               }}>
-                <p style={{ fontFamily: 'var(--font-inter), sans-serif', fontSize: 10, fontWeight: 400, letterSpacing: '0.14em', color: 'rgba(255,255,255,0.75)', textTransform: 'uppercase', margin: 0 }}>
+                <p style={{ fontFamily: 'var(--font-inter), sans-serif', fontSize: 10, fontWeight: 400, letterSpacing: '0.1em', color: 'white', textTransform: 'uppercase', margin: 0 }}>
                   {ELEMENTS[prevIndex].label}
                 </p>
               </div>
             </div>
 
-            {/* Center panel */}
-            <div style={{
-              width: 'var(--card-cw, 38vw)',
-              height: 'var(--card-ch, 26vh)',
-              borderRadius: '12px 12px 0 0',
-              overflow: 'hidden',
-              flexShrink: 0,
-              position: 'relative',
-              boxShadow: '0 -8px 40px rgba(0,0,0,0.4)',
-              transition: 'width 0.1s linear, height 0.1s linear',
-            }}>
+            {/* Center card — dominant, slides in on change */}
+            <div
+              key={`center-${activeIndex}`}
+              className="hero-card-center"
+              style={{
+                width: 'var(--card-cw, 52vw)',
+                height: 'var(--card-ch, 30vh)',
+                borderRadius: '14px 14px 0 0',
+                overflow: 'hidden',
+                flexShrink: 0,
+                position: 'relative',
+                zIndex: 2,
+                boxShadow: '0 -12px 48px rgba(0,0,0,0.45)',
+                transition: 'width 0.1s linear, height 0.1s linear',
+              }}
+            >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src="/website_animation_draft.png" alt={ELEMENTS[activeIndex].label}
                 style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
               <div style={{
                 position: 'absolute', bottom: 0, left: 0, right: 0,
                 padding: '32px 20px 16px',
-                background: 'linear-gradient(to top, rgba(0,0,0,0.7), transparent)',
+                background: 'linear-gradient(to top, rgba(0,0,0,0.6), transparent)',
               }}>
-                <p style={{ fontFamily: 'var(--font-inter), sans-serif', fontSize: 11, fontWeight: 400, letterSpacing: '0.14em', color: 'rgba(255,255,255,0.9)', textTransform: 'uppercase', margin: 0 }}>
+                <p style={{ fontFamily: 'var(--font-inter), sans-serif', fontSize: 11, fontWeight: 400, letterSpacing: '0.1em', color: 'white', textTransform: 'uppercase', margin: 0 }}>
                   {ELEMENTS[activeIndex].label}
                 </p>
               </div>
             </div>
 
-            {/* Right panel */}
-            <div style={{
-              width: '26vw',
-              height: '22vh',
-              borderRadius: '12px 12px 0 0',
-              overflow: 'hidden',
-              flexShrink: 0,
-              opacity: 'var(--side-opacity, 1)' as unknown as number,
-              transition: 'opacity 0.5s ease',
-              position: 'relative',
-            }}>
+            {/* Right side card — mostly hidden off-screen right */}
+            <div
+              key={`right-${nextIndex}`}
+              className="hero-card-side"
+              style={{
+                width: '38vw',
+                height: '26vh',
+                borderRadius: '14px 14px 0 0',
+                overflow: 'hidden',
+                flexShrink: 0,
+                marginLeft: '-26vw',   // pushes most of card off right edge
+                position: 'relative',
+                opacity: 'var(--side-opacity, 1)' as unknown as number,
+              }}
+            >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src="/website_animation_draft.png" alt={ELEMENTS[nextIndex].label}
                 style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
               <div style={{
                 position: 'absolute', bottom: 0, left: 0, right: 0,
-                padding: '24px 14px 12px',
-                background: 'linear-gradient(to top, rgba(0,0,0,0.7), transparent)',
+                padding: '24px 16px 12px',
+                background: 'linear-gradient(to top, rgba(0,0,0,0.6), transparent)',
               }}>
-                <p style={{ fontFamily: 'var(--font-inter), sans-serif', fontSize: 10, fontWeight: 400, letterSpacing: '0.14em', color: 'rgba(255,255,255,0.75)', textTransform: 'uppercase', margin: 0 }}>
+                <p style={{ fontFamily: 'var(--font-inter), sans-serif', fontSize: 10, fontWeight: 400, letterSpacing: '0.1em', color: 'white', textTransform: 'uppercase', margin: 0 }}>
                   {ELEMENTS[nextIndex].label}
                 </p>
               </div>
             </div>
 
-          </div>{/* /cards strip */}
-
+          </div>{/* /cards */}
         </div>{/* /sticky */}
       </section>
     </>
