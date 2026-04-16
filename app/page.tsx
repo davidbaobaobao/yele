@@ -1,4 +1,4 @@
-import HeroSection       from '@/components/HeroSection'
+import Hero              from '@/components/Hero'
 import PortfolioSection  from '@/components/PortfolioSection'
 import Services          from '@/components/Services'
 import Capabilities      from '@/components/Capabilities'
@@ -13,7 +13,7 @@ export default function Home() {
   return (
     <>
       {/* 1 — Hero */}
-      <HeroSection />
+      <Hero />
 
       {/* 2 — Portfolio */}
       <PortfolioSection />
