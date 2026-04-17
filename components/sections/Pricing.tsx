@@ -1,28 +1,17 @@
 'use client'
 
 import { useState } from 'react'
-import { CheckCircle2 } from 'lucide-react'
-import { ScrollReveal } from '@/components/ui/ScrollReveal'
+import { PricingCard } from '@/components/ui/pricing-card'
 
-interface Plan {
-  name: string
-  tagline: string
-  badge?: string
-  monthlyPrice: number
-  annualMonthly: number
-  annualTotal: number
-  features: string[]
-  highlighted: boolean
-  cta: string
-}
-
-const PLANS: Plan[] = [
+const PLANS = [
   {
-    name: 'Básica',
+    title: 'Básica',
     tagline: 'Para empezar',
-    monthlyPrice: 19.90,
-    annualMonthly: 15.90,
-    annualTotal: 190.80,
+    monthlyPrice: '€19.90',
+    monthlyDesc: 'al mes · facturado mensualmente',
+    annualPrice: '€15.90',
+    annualDesc: 'al mes · facturado €190.80/año',
+    description: 'Perfecta para autónomos y pequeños negocios que quieren presencia online profesional.',
     features: [
       'Hasta 4 páginas',
       'Diseño profesional',
@@ -31,16 +20,21 @@ const PLANS: Plan[] = [
       'Panel de gestión',
       'Soporte por mensajes',
     ],
+    buttonText: 'Empezar con Básica',
+    href: '/registro',
+    imageSrc: 'https://www.thiings.co/_next/image?url=https%3A%2F%2Flftz25oez4aqbxpq.public.blob.vercel-storage.com%2Fimage-gyoxLFpXzRRzVsgPJOKvB2r4tvzpcy.png&w=320&q=75',
+    imageAlt: 'Plan Básica',
     highlighted: false,
-    cta: 'Empezar con Básica',
+    badge: undefined,
   },
   {
-    name: 'Profesional',
+    title: 'Profesional',
     tagline: 'El más elegido',
-    badge: 'Más popular',
-    monthlyPrice: 29,
-    annualMonthly: 23.20,
-    annualTotal: 278.40,
+    monthlyPrice: '€29',
+    monthlyDesc: 'al mes · facturado mensualmente',
+    annualPrice: '€23.20',
+    annualDesc: 'al mes · facturado €278.40/año',
+    description: 'Para negocios que quieren crecer online con más páginas, blog y SEO local avanzado.',
     features: [
       'Todo lo de Básica',
       'Hasta 6 páginas',
@@ -50,15 +44,21 @@ const PLANS: Plan[] = [
       'Integración WhatsApp',
       'Soporte prioritario',
     ],
+    buttonText: 'Empezar con Profesional',
+    href: '/registro',
+    imageSrc: 'https://www.thiings.co/_next/image?url=https%3A%2F%2Flftz25oez4aqbxpq.public.blob.vercel-storage.com%2Fimage-v98BP3EQdx0Yd0NkjHPnWx33WvzwGP.png&w=320&q=75',
+    imageAlt: 'Plan Profesional',
     highlighted: true,
-    cta: 'Empezar con Profesional',
+    badge: 'Más popular',
   },
   {
-    name: 'Avanzada',
+    title: 'Avanzada',
     tagline: 'Sin límites',
-    monthlyPrice: 59,
-    annualMonthly: 47.20,
-    annualTotal: 566.40,
+    monthlyPrice: '€59',
+    monthlyDesc: 'al mes · facturado mensualmente',
+    annualPrice: '€47.20',
+    annualDesc: 'al mes · facturado €566.40/año',
+    description: 'Para negocios con necesidades específicas que requieren páginas ilimitadas y funcionalidades a medida.',
     features: [
       'Todo lo de Profesional',
       'Páginas ilimitadas',
@@ -66,8 +66,12 @@ const PLANS: Plan[] = [
       'Funcionalidades a medida',
       'Prioridad máxima en soporte',
     ],
+    buttonText: 'Empezar con Avanzada',
+    href: '/registro',
+    imageSrc: 'https://www.thiings.co/_next/image?url=https%3A%2F%2Flftz25oez4aqbxpq.public.blob.vercel-storage.com%2Fimage-v98BP3EQdx0Yd0NkjHPnWx33WvzwGP.png&w=320&q=75',
+    imageAlt: 'Plan Avanzada',
     highlighted: false,
-    cta: 'Empezar con Avanzada',
+    badge: undefined,
   },
 ]
 
@@ -75,12 +79,30 @@ export default function Pricing() {
   const [annual, setAnnual] = useState(false)
 
   return (
-    <section style={{ background: 'var(--color-light)', paddingTop: '96px', paddingBottom: '96px' }}>
-      <div style={{ maxWidth: '64rem', margin: '0 auto', paddingLeft: '24px', paddingRight: '24px' }}>
+    <>
+      <style>{`
+        .pricing-grid {
+          display: grid;
+          grid-template-columns: 1fr;
+          gap: 24px;
+        }
+        @media (min-width: 768px) {
+          .pricing-grid {
+            grid-template-columns: repeat(2, 1fr);
+          }
+        }
+        @media (min-width: 1024px) {
+          .pricing-grid {
+            grid-template-columns: repeat(3, 1fr);
+          }
+        }
+      `}</style>
 
-        {/* Header */}
-        <ScrollReveal>
-          <div style={{ textAlign: 'center' }}>
+      <section style={{ background: 'var(--color-light)', padding: '96px 0' }}>
+        <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '0 24px' }}>
+
+          {/* Label + Heading */}
+          <div style={{ textAlign: 'center', marginBottom: '40px' }}>
             <p style={{
               fontSize: '11px',
               fontWeight: 600,
@@ -94,31 +116,43 @@ export default function Pricing() {
             </p>
             <h2 style={{
               fontFamily: 'var(--font-display)',
-              fontSize: 'clamp(28px, 4vw, 44px)',
-              fontWeight: 400,
+              fontSize: 'clamp(32px, 5vw, 56px)',
+              fontWeight: 700,
               color: 'var(--color-dark)',
-              lineHeight: 1.15,
+              lineHeight: 1.1,
               letterSpacing: '-0.02em',
-              marginBottom: '32px',
             }}>
               Un precio fijo. Todo incluido.
             </h2>
+          </div>
 
-            {/* Billing toggle */}
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', marginBottom: '48px' }}>
+          {/* Billing toggle */}
+          <div style={{
+            display: 'flex',
+            justifyContent: 'center',
+            marginBottom: '48px',
+          }}>
+            <div style={{
+              display: 'flex',
+              gap: '4px',
+              background: 'rgba(0,0,0,0.06)',
+              borderRadius: '8px',
+              padding: '4px',
+            }}>
               <button
                 onClick={() => setAnnual(false)}
                 style={{
-                  padding: '8px 20px',
+                  padding: '8px 24px',
                   borderRadius: '6px',
-                  border: annual ? '1px solid rgba(139,126,110,0.3)' : 'none',
-                  background: annual ? 'transparent' : 'var(--color-dark)',
-                  color: annual ? 'var(--color-fog)' : 'white',
-                  fontFamily: 'var(--font-body)',
-                  fontSize: '13px',
-                  fontWeight: 500,
+                  border: 'none',
                   cursor: 'pointer',
-                  transition: 'all 200ms',
+                  fontSize: '13px',
+                  fontWeight: 600,
+                  fontFamily: 'var(--font-body)',
+                  background: !annual ? 'white' : 'transparent',
+                  color: !annual ? 'var(--color-dark)' : 'var(--color-fog)',
+                  boxShadow: !annual ? '0 1px 4px rgba(0,0,0,0.1)' : 'none',
+                  transition: 'all 0.2s',
                 }}
               >
                 Mensual
@@ -126,181 +160,136 @@ export default function Pricing() {
               <button
                 onClick={() => setAnnual(true)}
                 style={{
-                  padding: '8px 20px',
+                  padding: '8px 24px',
                   borderRadius: '6px',
-                  border: annual ? 'none' : '1px solid rgba(139,126,110,0.3)',
-                  background: annual ? 'var(--color-dark)' : 'transparent',
-                  color: annual ? 'white' : 'var(--color-fog)',
-                  fontFamily: 'var(--font-body)',
-                  fontSize: '13px',
-                  fontWeight: 500,
+                  border: 'none',
                   cursor: 'pointer',
-                  transition: 'all 200ms',
+                  fontSize: '13px',
+                  fontWeight: 600,
+                  fontFamily: 'var(--font-body)',
+                  background: annual ? 'white' : 'transparent',
+                  color: annual ? 'var(--color-dark)' : 'var(--color-fog)',
+                  boxShadow: annual ? '0 1px 4px rgba(0,0,0,0.1)' : 'none',
+                  transition: 'all 0.2s',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
                 }}
               >
                 Anual
-              </button>
-              {annual && (
-                <span style={{
-                  background: '#d1fae5',
-                  color: '#065f46',
-                  fontSize: '11px',
-                  fontWeight: 600,
-                  padding: '3px 10px',
-                  borderRadius: '999px',
-                  fontFamily: 'var(--font-body)',
-                }}>
-                  2 meses gratis
-                </span>
-              )}
-            </div>
-          </div>
-        </ScrollReveal>
-
-        {/* Plan cards */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
-          gap: '20px',
-          alignItems: 'start',
-        }}>
-          {PLANS.map((plan, i) => (
-            <ScrollReveal key={i} delay={i * 80}>
-              <div style={{
-                position: 'relative',
-                background: 'white',
-                borderRadius: '12px',
-                padding: '32px',
-                border: plan.highlighted ? `2px solid var(--color-accent)` : '1px solid rgba(200,194,180,0.3)',
-                boxShadow: plan.highlighted ? '0 8px 32px rgba(212,168,67,0.12)' : '0 1px 3px rgba(0,0,0,0.06)',
-                transform: plan.highlighted ? 'scale(1.04)' : 'scale(1)',
-              }}>
-
-                {/* Popular badge */}
-                {plan.badge && (
+                {annual && (
                   <span style={{
-                    position: 'absolute',
-                    top: '16px',
-                    right: '16px',
-                    background: 'var(--color-accent)',
-                    color: 'var(--color-dark)',
                     fontSize: '10px',
                     fontWeight: 700,
-                    letterSpacing: '0.06em',
-                    padding: '4px 10px',
-                    borderRadius: '999px',
-                    fontFamily: 'var(--font-body)',
-                  }}>
-                    {plan.badge}
-                  </span>
-                )}
-
-                <h3 style={{
-                  fontFamily: 'var(--font-display)',
-                  fontSize: '24px',
-                  fontWeight: 400,
-                  color: 'var(--color-dark)',
-                  marginBottom: '4px',
-                }}>
-                  {plan.name}
-                </h3>
-                <p style={{
-                  fontFamily: 'var(--font-body)',
-                  fontSize: '13px',
-                  color: 'var(--color-fog)',
-                  marginBottom: '20px',
-                }}>
-                  {plan.tagline}
-                </p>
-
-                {/* Price */}
-                <div style={{ marginBottom: '4px' }}>
-                  <span style={{
-                    fontFamily: 'var(--font-display)',
-                    fontSize: '48px',
-                    fontWeight: 400,
+                    background: 'var(--color-accent)',
                     color: 'var(--color-dark)',
-                    lineHeight: 1,
+                    padding: '2px 8px',
+                    borderRadius: '20px',
+                    letterSpacing: '0.06em',
                   }}>
-                    €{annual ? plan.annualMonthly.toFixed(2) : plan.monthlyPrice % 1 === 0 ? plan.monthlyPrice : plan.monthlyPrice.toFixed(2)}
+                    2 MESES GRATIS
                   </span>
-                  <span style={{
-                    fontFamily: 'var(--font-body)',
-                    fontSize: '13px',
-                    color: 'var(--color-fog)',
-                    marginLeft: '4px',
-                  }}>
-                    /mes
-                  </span>
-                </div>
-                {annual && (
-                  <p style={{
-                    fontFamily: 'var(--font-body)',
-                    fontSize: '12px',
-                    color: 'var(--color-fog)',
-                    marginBottom: '20px',
-                  }}>
-                    Facturado €{plan.annualTotal.toFixed(2)}/año
-                  </p>
                 )}
+              </button>
+            </div>
+          </div>
 
-                {/* Divider */}
-                <div style={{ height: '0.5px', background: 'rgba(200,194,180,0.3)', margin: '20px 0' }} />
+          {/* Plan cards — 3 columns with center card elevated */}
+          <div className="pricing-grid" style={{ alignItems: 'start' }}>
+            {PLANS.map((plan) => (
+              <PricingCard
+                key={plan.title}
+                title={plan.title}
+                tagline={plan.tagline}
+                price={annual ? plan.annualPrice : plan.monthlyPrice}
+                priceDescription={annual ? plan.annualDesc : plan.monthlyDesc}
+                description={plan.description}
+                features={plan.features}
+                buttonText={plan.buttonText}
+                href={plan.href}
+                imageSrc={plan.imageSrc}
+                imageAlt={plan.imageAlt}
+                highlighted={plan.highlighted}
+                badge={plan.badge}
+                style={plan.highlighted ? {
+                  marginTop: '-12px',
+                  marginBottom: '-12px',
+                  position: 'relative',
+                  zIndex: 1,
+                } : {}}
+              />
+            ))}
+          </div>
 
-                {/* Features */}
-                <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '32px' }}>
-                  {plan.features.map((f, j) => (
-                    <li key={j} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
-                      <CheckCircle2 size={16} color="var(--color-accent)" strokeWidth={2} style={{ flexShrink: 0, marginTop: '2px' }} />
-                      <span style={{ fontFamily: 'var(--font-body)', fontSize: '14px', color: 'rgba(28,28,24,0.7)', lineHeight: 1.5 }}>
-                        {f}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
+          {/* Custom/enterprise wide card */}
+          <div style={{
+            marginTop: '44px',
+            background: 'white',
+            border: '1px solid rgba(0,0,0,0.08)',
+            borderRadius: '12px',
+            padding: '32px',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            gap: '24px',
+            flexWrap: 'wrap',
+          }}>
+            <div>
+              <h3 style={{
+                fontSize: '18px',
+                fontWeight: 600,
+                fontFamily: 'var(--font-display)',
+                color: 'var(--color-dark)',
+                marginBottom: '6px',
+              }}>
+                ¿Necesitas algo a medida?
+              </h3>
+              <p style={{
+                fontSize: '14px',
+                color: 'var(--color-fog)',
+                lineHeight: 1.65,
+                maxWidth: '500px',
+                fontFamily: 'var(--font-body)',
+              }}>
+                Si tu negocio tiene necesidades específicas — tienda online, reservas, multiidioma — cuéntanos y diseñamos una solución para ti.
+              </p>
+            </div>
+            <a
+              href="/contacto"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                background: 'var(--color-dark)',
+                color: 'white',
+                padding: '14px 28px',
+                borderRadius: '6px',
+                fontSize: '13px',
+                fontWeight: 600,
+                textDecoration: 'none',
+                whiteSpace: 'nowrap',
+                transition: 'opacity 0.2s',
+                fontFamily: 'var(--font-body)',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.opacity = '0.85' }}
+              onMouseLeave={e => { e.currentTarget.style.opacity = '1' }}
+            >
+              Hablemos →
+            </a>
+          </div>
 
-                {/* CTA */}
-                <a
-                  href="/registro"
-                  style={{
-                    display: 'block',
-                    width: '100%',
-                    textAlign: 'center',
-                    padding: '12px 20px',
-                    borderRadius: '6px',
-                    background: plan.highlighted ? 'var(--color-accent)' : 'var(--color-dark)',
-                    color: plan.highlighted ? 'var(--color-dark)' : 'white',
-                    fontFamily: 'var(--font-body)',
-                    fontSize: '13px',
-                    fontWeight: 600,
-                    textDecoration: 'none',
-                    transition: 'opacity 200ms',
-                    boxSizing: 'border-box',
-                  }}
-                  onMouseEnter={e => { e.currentTarget.style.opacity = '0.85' }}
-                  onMouseLeave={e => { e.currentTarget.style.opacity = '1' }}
-                >
-                  {plan.cta}
-                </a>
-              </div>
-            </ScrollReveal>
-          ))}
-        </div>
-
-        {/* Footer note */}
-        <ScrollReveal delay={240}>
+          {/* Fine print */}
           <p style={{
             textAlign: 'center',
-            marginTop: '32px',
-            fontFamily: 'var(--font-body)',
+            marginTop: '24px',
             fontSize: '13px',
             color: 'var(--color-fog)',
+            fontFamily: 'var(--font-body)',
           }}>
             Sin permanencia · Cancela cuando quieras · Primeros 14 días gratis
           </p>
-        </ScrollReveal>
 
-      </div>
-    </section>
+        </div>
+      </section>
+    </>
   )
 }
