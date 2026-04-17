@@ -1,46 +1,38 @@
-import Hero              from '@/components/Hero'
-import PortfolioSection  from '@/components/PortfolioSection'
-import Services          from '@/components/Services'
-import Capabilities      from '@/components/Capabilities'
-import Pricing           from '@/components/Pricing'
-import HowItWorks        from '@/components/HowItWorks'
-import Testimonials      from '@/components/Testimonials'
-import FAQ               from '@/components/FAQ'
-import ContactSection    from '@/components/ContactSection'
-import CTASection        from '@/components/CTASection'
+import Hero       from '@/components/Hero'
+import CoreValues  from '@/components/sections/CoreValues'
+import WebsiteGrid from '@/components/sections/WebsiteGrid'
+import Services    from '@/components/sections/Services'
+import Pricing     from '@/components/sections/Pricing'
+import Process     from '@/components/sections/Process'
+import FAQContact  from '@/components/sections/FAQContact'
+import FinalCTA    from '@/components/sections/FinalCTA'
 
-export default function Home() {
+export default function HomePage() {
   return (
-    <>
+    <main>
       {/* 1 — Hero */}
       <Hero />
 
-      {/* 2 — Portfolio */}
-      <PortfolioSection />
+      {/* 2 — Core values */}
+      <CoreValues />
 
-      {/* 3 — Services / por qué elegirnos */}
+      {/* 3 — Website examples grid */}
+      <WebsiteGrid />
+
+      {/* 4 — Service offering */}
       <Services />
-
-      {/* 4 — Capabilities / lo que incluye */}
-      <Capabilities />
 
       {/* 5 — Pricing */}
       <Pricing />
 
-      {/* 6 — How it works */}
-      <HowItWorks />
+      {/* 6 — Process timeline */}
+      <Process />
 
-      {/* 7 — Testimonials */}
-      <Testimonials />
+      {/* 7 — FAQ + Contact */}
+      <FAQContact />
 
-      {/* 8 — FAQ */}
-      <FAQ />
-
-      {/* 9 — Contact */}
-      <ContactSection />
-
-      {/* 10 — CTA hero */}
-      <CTASection />
-    </>
+      {/* 8 — Final CTA */}
+      <FinalCTA />
+    </main>
   )
 }
