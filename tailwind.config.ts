@@ -10,6 +10,9 @@ const config: Config = {
     extend: {
       // ── Washi Design System ─────────────────────────────────────────
       colors: {
+        // shadcn card tokens
+        'card':                     '#ffffff',
+        'card-foreground':          '#1c1c18',
         // Core surfaces
         'surface':                  '#fcf9f3', // Washi White
         'surface-bright':           '#fcf9f3',
@@ -52,10 +55,10 @@ const config: Config = {
         'DEFAULT': '0px',
         'sm': '0px',
         'md': '0px',
-        'lg': '0px',
-        'xl': '0px',
+        'lg': '8px',   // bento cards only
+        'xl': '12px',  // bento cards only
         '2xl': '0px',
-        'full': '9999px', // keep full for pill shapes
+        'full': '9999px',
       },
       // Tonal shadows — never pure grey
       boxShadow: {
