@@ -12,47 +12,95 @@ const ELEMENTS = [
   { id: 5, label: 'Dentista'    },
   { id: 6, label: 'Entrenador'  },
 ]
-const TOTAL              = ELEMENTS.length
-const DURATION_PER_ELEM  = 2   // seconds each element shows
-const TOTAL_DURATION     = DURATION_PER_ELEM * TOTAL // 14 s loop
+const TOTAL             = ELEMENTS.length
+const DURATION_PER_ELEM = 2              // seconds per element
+const TOTAL_DURATION    = TOTAL * DURATION_PER_ELEM // 14 s loop
+const CARD_H_BASE       = 38            // vh at scroll=0
+const CARD_H_MAX        = 82            // vh at scroll=1
 
 function wrap(i: number) { return ((i % TOTAL) + TOTAL) % TOTAL }
 
+// ─── Card inner content ───────────────────────────────────────────────────────
+function CardContent({ label }: { label: string }) {
+  return (
+    <>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src="/website_animation_draft.png"
+        alt={label}
+        style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+      />
+      {/* Bottom gradient */}
+      <div style={{
+        position: 'absolute', bottom: 0, left: 0, right: 0,
+        background: 'linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 40%)',
+        height: '50%',
+        zIndex: 1,
+      }} />
+      {/* Label */}
+      <p style={{
+        position: 'absolute', bottom: 16, left: 16,
+        fontFamily: 'var(--font-inter), sans-serif',
+        fontSize: 11, fontWeight: 500,
+        letterSpacing: '0.12em', textTransform: 'uppercase',
+        color: 'white', margin: 0, zIndex: 2,
+      }}>
+        {label}
+      </p>
+    </>
+  )
+}
+
 export default function Hero() {
-  const [activeIndex, setActiveIndex] = useState(0)
+  const [activeIndex,  setActiveIndex]  = useState(0)
   const [scrambleKey,  setScrambleKey]  = useState(0)
   const [videoReady,   setVideoReady]   = useState(false)
+  const [displayIndex, setDisplayIndex] = useState(0)
+  const [cardsVisible, setCardsVisible] = useState(true)
 
-  const stickyRef  = useRef<HTMLDivElement>(null)
-  const sectionRef = useRef<HTMLElement>(null)
-  const videoRef   = useRef<HTMLVideoElement>(null)
-  const rafRef     = useRef<number>()
+  const stickyRef   = useRef<HTMLDivElement>(null)
+  const sectionRef  = useRef<HTMLElement>(null)
+  const videoRef    = useRef<HTMLVideoElement>(null)
+  const rafRef      = useRef<number>()
+  const fadeTimer   = useRef<ReturnType<typeof setTimeout>>()
+  const firstRender = useRef(true)
 
-  // ── FIX 2: rAF loop synced to video.currentTime ───────────────
+  // ── rAF loop: sync activeIndex to video.currentTime ──────────────
   useEffect(() => {
     if (!videoReady) return
-
     const tick = () => {
-      const video = videoRef.current
-      if (video) {
-        const t        = video.currentTime % TOTAL_DURATION
-        const newIndex = Math.floor(t / DURATION_PER_ELEM)
+      const vid = videoRef.current
+      if (vid) {
+        const t     = vid.currentTime % TOTAL_DURATION
+        const next  = Math.floor(t / DURATION_PER_ELEM)
         setActiveIndex(prev => {
-          if (prev !== newIndex) {
-            setScrambleKey(k => k + 1)
-            return newIndex
-          }
+          if (prev !== next) { setScrambleKey(k => k + 1); return next }
           return prev
         })
       }
       rafRef.current = requestAnimationFrame(tick)
     }
-
     rafRef.current = requestAnimationFrame(tick)
     return () => { if (rafRef.current) cancelAnimationFrame(rafRef.current) }
   }, [videoReady])
 
-  // ── Scroll → CSS custom properties ────────────────────────────
+  // ── Crossfade: when activeIndex changes, fade out → swap → fade in ─
+  useEffect(() => {
+    if (firstRender.current) {
+      firstRender.current = false
+      setDisplayIndex(activeIndex)
+      return
+    }
+    setCardsVisible(false)
+    if (fadeTimer.current) clearTimeout(fadeTimer.current)
+    fadeTimer.current = setTimeout(() => {
+      setDisplayIndex(activeIndex)
+      setCardsVisible(true)
+    }, 300)
+    return () => { if (fadeTimer.current) clearTimeout(fadeTimer.current) }
+  }, [activeIndex])
+
+  // ── Scroll: set --card-height and --content-y on sticky el ───────
   useEffect(() => {
     const section = sectionRef.current
     const sticky  = stickyRef.current
@@ -62,13 +110,8 @@ export default function Hero() {
       const rect  = section.getBoundingClientRect()
       const total = section.offsetHeight - window.innerHeight
       const p     = Math.max(0, Math.min(1, -rect.top / total))
-
-      sticky.style.setProperty('--strip-h',      (28 + 57 * p) + 'vh')
-      sticky.style.setProperty('--card-cw',      (52 + 20 * p) + 'vw') // 52 → 72vw
-      sticky.style.setProperty('--card-ch',      (30 + 48 * p) + 'vh') // 30 → 78vh
-      sticky.style.setProperty('--side-opacity', String(1 - 0.6 * p))
-      sticky.style.setProperty('--text-y',       (-30 * p) + 'vh')
-      sticky.style.setProperty('--text-scale',   String(1 - 0.4 * p))
+      sticky.style.setProperty('--card-height', (CARD_H_BASE + (CARD_H_MAX - CARD_H_BASE) * p) + 'vh')
+      sticky.style.setProperty('--content-y',   (-30 * p) + 'vh')
     }
 
     window.addEventListener('scroll', onScroll, { passive: true })
@@ -76,301 +119,273 @@ export default function Hero() {
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
-  const prevIndex = wrap(activeIndex - 1)
-  const nextIndex = wrap(activeIndex + 1)
+  const leftIndex  = wrap(displayIndex - 1)
+  const rightIndex = wrap(displayIndex + 1)
+
+  // Cards: videoReady AND crossfade visibility
+  const cardsOpacity   = !videoReady ? 0 : cardsVisible ? 1 : 0
+  const cardsTransition = !videoReady
+    ? 'none'
+    : cardsVisible ? 'opacity 0.5s ease' : 'opacity 0.3s ease'
 
   return (
     <>
       <style>{`
-        [data-sticky] {
-          --strip-h:      28vh;
-          --card-cw:      52vw;
-          --card-ch:      30vh;
-          --side-opacity: 1;
-          --text-y:       0vh;
-          --text-scale:   1;
+        [data-hero-sticky] {
+          --card-height: ${CARD_H_BASE}vh;
+          --content-y:   0vh;
         }
-
-        /* Center card slides in from right on each index change */
-        @keyframes heroCardIn {
-          from { transform: translateX(48px); opacity: 0; }
-          to   { transform: translateX(0);    opacity: 1; }
-        }
-        .hero-card-center {
-          animation: heroCardIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
-        }
-        /* Side cards crossfade */
-        @keyframes heroSideFade {
-          from { opacity: 0; }
-          to   { opacity: var(--side-opacity, 1); }
-        }
-        .hero-card-side {
-          animation: heroSideFade 0.4s ease both;
-        }
-
-        /* Mobile */
         @media (max-width: 767px) {
           .hero-left {
             left: 50% !important;
-            top: 32% !important;
-            transform: translate(-50%, -50%) scale(var(--text-scale, 1)) !important;
+            top: 28% !important;
+            transform: translate(-50%, -50%) !important;
             text-align: center;
           }
           .hero-right {
             right: auto !important;
             left: 50% !important;
-            top: 62% !important;
+            top: 60% !important;
             transform: translate(-50%, -50%) !important;
             text-align: center;
           }
-          .hero-cards { display: none !important; }
-          [data-sticky] { --strip-h: 0vh !important; }
+          .hero-card-left, .hero-card-right { display: none !important; }
+          .hero-card-center {
+            width: 80vw !important;
+            transform: none !important;
+            margin: 0 !important;
+          }
+          [data-hero-sticky] {
+            --card-height: 30vh !important;
+            --content-y:   0vh  !important;
+          }
         }
       `}</style>
 
-      {/* ── 250vh outer section for scroll travel ─────────────── */}
+      {/* 240vh outer section — no overflow set so sticky works correctly */}
       <section
         ref={sectionRef}
-        style={{ position: 'relative', height: '250vh', width: '100%' }}
+        style={{ height: '240vh', position: 'relative' }}
       >
-        {/* ── Sticky viewport ────────────────────────────────── */}
+        {/* Sticky viewport — overflow: visible so rotated card tops are never clipped */}
         <div
           ref={stickyRef}
-          data-sticky
+          data-hero-sticky
           style={{
             position: 'sticky',
             top: 0,
             height: '100vh',
-            overflow: 'hidden',
-            background: '#0a0a0a',
+            overflow: 'visible',
           }}
         >
-          {/* Static fallback always visible */}
-          <div aria-hidden style={{
-            position: 'absolute', inset: 0,
-            backgroundImage: 'url(/hero-static.jpg)',
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            zIndex: 0,
-          }} />
 
-          {/* Video fades in on canPlay */}
-          <video
-            ref={videoRef}
-            autoPlay muted loop playsInline
-            onCanPlay={() => setVideoReady(true)}
-            style={{
+          {/* ── CONTENT BLOCK — translates up on scroll ─────────────── */}
+          <div style={{
+            position: 'absolute',
+            inset: 0,
+            transform: 'translateY(var(--content-y, 0vh))',
+            willChange: 'transform',
+          }}>
+
+            {/* Static fallback — always visible, shows before video loads */}
+            <div aria-hidden style={{
               position: 'absolute', inset: 0,
-              width: '100%', height: '100%',
-              objectFit: 'cover',
-              opacity: videoReady ? 1 : 0,
-              transition: 'opacity 0.8s ease',
-              zIndex: 1,
-            }}
-          >
-            <source src="/hero-dash.mp4" type="video/mp4" />
-          </video>
+              backgroundImage: 'url(/hero-static.jpg)',
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+              zIndex: 0,
+            }} />
 
-          {/* Overlay */}
-          <div aria-hidden style={{
-            position: 'absolute', inset: 0,
-            background: 'linear-gradient(to bottom, rgba(0,0,0,0.28) 0%, rgba(0,0,0,0.18) 55%, rgba(0,0,0,0.55) 100%)',
-            zIndex: 2,
-          }} />
-
-          {/* ── LEFT — scramble label, hidden until videoReady ── */}
-          <div
-            className="hero-left"
-            style={{
-              position: 'absolute',
-              left: 'clamp(24px, 8vw, 120px)',
-              top: '50%',
-              transform: 'translateY(calc(-50% + var(--text-y, 0vh))) scale(var(--text-scale, 1))',
-              transformOrigin: 'left center',
-              zIndex: 10,
-              // FIX 1: instant hide/show — no transition
-              opacity: videoReady ? 1 : 0,
-            }}
-          >
-            <div style={{
-              fontSize: 'clamp(48px, 6vw, 80px)',
-              fontFamily: 'var(--font-newsreader), Georgia, serif',
-              fontWeight: 600,
-              fontStyle: 'italic',
-              color: '#ffffff',
-              lineHeight: 1,
-              letterSpacing: '-0.02em',
-              minWidth: 'max-content',
-            }}>
-              <TextScramble key={scrambleKey} text={ELEMENTS[activeIndex].label} />
-            </div>
-          </div>
-
-          {/* ── RIGHT — always visible ───────────────────────── */}
-          <div
-            className="hero-right"
-            style={{
-              position: 'absolute',
-              right: 'clamp(24px, 8vw, 120px)',
-              top: '50%',
-              transform: 'translateY(-50%)',
-              textAlign: 'right',
-              zIndex: 10,
-            }}
-          >
-            <p style={{
-              fontFamily: 'var(--font-newsreader), Georgia, serif',
-              fontSize: 'clamp(32px, 4vw, 56px)',
-              fontWeight: 400,
-              color: '#ffffff',
-              lineHeight: 1.1,
-              letterSpacing: '-0.02em',
-              margin: '0 0 4px',
-            }}>
-              Tu página web
-            </p>
-            <p style={{
-              fontFamily: 'var(--font-newsreader), Georgia, serif',
-              fontSize: 'clamp(32px, 4vw, 56px)',
-              fontWeight: 700,
-              fontStyle: 'italic',
-              color: '#d4a843',
-              lineHeight: 1.1,
-              letterSpacing: '-0.02em',
-              margin: '0 0 32px',
-            }}>
-              por 29€/mes
-            </p>
-            <a
-              href="/registro"
+            {/* Video — 130vh tall so it covers when content moves up 30vh */}
+            <video
+              ref={videoRef}
+              autoPlay muted loop playsInline
+              onCanPlay={() => setVideoReady(true)}
               style={{
-                display: 'inline-block',
-                padding: '14px 28px',
-                background: '#ffffff',
-                color: '#1c1c18',
-                fontFamily: 'var(--font-inter), sans-serif',
-                fontSize: 12,
-                fontWeight: 400,
-                letterSpacing: '0.12em',
-                textDecoration: 'none',
-                textTransform: 'uppercase',
-                transition: 'background 0.25s, color 0.25s',
+                position: 'absolute',
+                top: 0, left: 0,
+                width: '100%', height: '130vh',
+                objectFit: 'cover',
+                opacity: videoReady ? 1 : 0,
+                transition: 'opacity 0.8s ease',
+                zIndex: 1,
               }}
-              onMouseEnter={e => { e.currentTarget.style.background = '#d4a843'; e.currentTarget.style.color = '#ffffff' }}
-              onMouseLeave={e => { e.currentTarget.style.background = '#ffffff'; e.currentTarget.style.color = '#1c1c18' }}
             >
-              Quiero mi web →
-            </a>
-          </div>
+              <source src="/hero-dash.mp4" type="video/mp4" />
+            </video>
 
-          {/* ── CARDS STRIP — hidden until videoReady ────────── */}
-          {/* FIX 3: margin trick — side cards are 38vw wide but
-              pushed -26vw so only ~12vw shows at each edge       */}
+            {/* Overlay */}
+            <div aria-hidden style={{
+              position: 'absolute', inset: 0,
+              background: 'linear-gradient(to bottom, rgba(0,0,0,0.28) 0%, rgba(0,0,0,0.18) 55%, rgba(0,0,0,0.52) 100%)',
+              zIndex: 2,
+            }} />
+
+            {/* LEFT — scramble label, hidden until video ready */}
+            <div
+              className="hero-left"
+              style={{
+                position: 'absolute',
+                left: 'clamp(24px, 8vw, 120px)',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                transformOrigin: 'left center',
+                zIndex: 10,
+                opacity: videoReady ? 1 : 0,
+              }}
+            >
+              <div style={{
+                fontSize: 'clamp(48px, 6vw, 80px)',
+                fontFamily: 'var(--font-newsreader), Georgia, serif',
+                fontWeight: 600,
+                fontStyle: 'italic',
+                color: '#ffffff',
+                lineHeight: 1,
+                letterSpacing: '-0.02em',
+                minWidth: 'max-content',
+              }}>
+                <TextScramble key={scrambleKey} text={ELEMENTS[activeIndex].label} />
+              </div>
+            </div>
+
+            {/* RIGHT — always visible */}
+            <div
+              className="hero-right"
+              style={{
+                position: 'absolute',
+                right: 'clamp(24px, 8vw, 120px)',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                textAlign: 'right',
+                zIndex: 10,
+              }}
+            >
+              <p style={{
+                fontFamily: 'var(--font-newsreader), Georgia, serif',
+                fontSize: 'clamp(32px, 4vw, 56px)',
+                fontWeight: 400,
+                color: '#ffffff',
+                lineHeight: 1.1,
+                letterSpacing: '-0.02em',
+                margin: '0 0 4px',
+              }}>
+                Tu página web
+              </p>
+              <p style={{
+                fontFamily: 'var(--font-newsreader), Georgia, serif',
+                fontSize: 'clamp(32px, 4vw, 56px)',
+                fontWeight: 700,
+                fontStyle: 'italic',
+                color: '#d4a843',
+                lineHeight: 1.1,
+                letterSpacing: '-0.02em',
+                margin: '0 0 32px',
+              }}>
+                por 29€/mes
+              </p>
+              <a
+                href="/registro"
+                style={{
+                  display: 'inline-block',
+                  padding: '14px 28px',
+                  background: '#ffffff',
+                  color: '#1c1c18',
+                  fontFamily: 'var(--font-inter), sans-serif',
+                  fontSize: 12,
+                  fontWeight: 400,
+                  letterSpacing: '0.12em',
+                  textDecoration: 'none',
+                  textTransform: 'uppercase',
+                  transition: 'background 0.25s, color 0.25s',
+                }}
+                onMouseEnter={e => { e.currentTarget.style.background = '#d4a843'; e.currentTarget.style.color = '#ffffff' }}
+                onMouseLeave={e => { e.currentTarget.style.background = '#ffffff'; e.currentTarget.style.color = '#1c1c18' }}
+              >
+                Quiero mi web →
+              </a>
+            </div>
+
+          </div>{/* /content block */}
+
+          {/* ── CARDS STRIP — anchored to sticky bottom, not content block ── */}
+          {/* overflow: visible so rotated tops extend above strip boundary    */}
           <div
-            className="hero-cards"
             style={{
               position: 'absolute',
               bottom: 0, left: 0, right: 0,
-              height: 'var(--strip-h, 28vh)',
-              overflow: 'hidden',
               display: 'flex',
               alignItems: 'flex-end',
               justifyContent: 'center',
-              gap: 12,
+              overflow: 'visible',
+              pointerEvents: 'none',
               zIndex: 10,
-              // FIX 1: instant hide/show on cards too
-              opacity: videoReady ? 1 : 0,
+              // Combined opacity: hidden before video, then crossfade on index change
+              opacity: cardsOpacity,
+              transition: cardsTransition,
             }}
           >
-            {/* Left side card — mostly hidden off-screen left */}
+
+            {/* LEFT — rotate(5deg) pivoting at bottom-right corner → top leans toward center */}
             <div
-              key={`left-${prevIndex}`}
-              className="hero-card-side"
+              className="hero-card-left"
               style={{
-                width: '38vw',
-                height: '26vh',
+                position: 'relative',
+                width: '36vw',
+                height: 'var(--card-height, 38vh)',
+                transform: 'rotate(5deg)',
+                transformOrigin: 'bottom right',
+                marginRight: '-4vw',
                 borderRadius: '14px 14px 0 0',
                 overflow: 'hidden',
                 flexShrink: 0,
-                marginRight: '-26vw',  // pushes most of card off left edge
-                position: 'relative',
-                opacity: 'var(--side-opacity, 1)' as unknown as number,
+                transition: 'height 0.2s ease-out',
+                zIndex: 2,
               }}
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/website_animation_draft.png" alt={ELEMENTS[prevIndex].label}
-                style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-              <div style={{
-                position: 'absolute', bottom: 0, left: 0, right: 0,
-                padding: '24px 16px 12px',
-                background: 'linear-gradient(to top, rgba(0,0,0,0.6), transparent)',
-              }}>
-                <p style={{ fontFamily: 'var(--font-inter), sans-serif', fontSize: 10, fontWeight: 400, letterSpacing: '0.1em', color: 'white', textTransform: 'uppercase', margin: 0 }}>
-                  {ELEMENTS[prevIndex].label}
-                </p>
-              </div>
+              <CardContent label={ELEMENTS[leftIndex].label} />
             </div>
 
-            {/* Center card — dominant, slides in on change */}
+            {/* CENTER — perfectly vertical, dominant card */}
             <div
-              key={`center-${activeIndex}`}
               className="hero-card-center"
               style={{
-                width: 'var(--card-cw, 52vw)',
-                height: 'var(--card-ch, 30vh)',
+                position: 'relative',
+                width: '36vw',
+                height: 'var(--card-height, 38vh)',
+                transform: 'none',
                 borderRadius: '14px 14px 0 0',
                 overflow: 'hidden',
                 flexShrink: 0,
-                position: 'relative',
-                zIndex: 2,
-                boxShadow: '0 -12px 48px rgba(0,0,0,0.45)',
-                transition: 'width 0.1s linear, height 0.1s linear',
+                transition: 'height 0.2s ease-out',
+                zIndex: 3,
+                boxShadow: '0 -16px 60px rgba(0,0,0,0.5)',
               }}
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/website_animation_draft.png" alt={ELEMENTS[activeIndex].label}
-                style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-              <div style={{
-                position: 'absolute', bottom: 0, left: 0, right: 0,
-                padding: '32px 20px 16px',
-                background: 'linear-gradient(to top, rgba(0,0,0,0.6), transparent)',
-              }}>
-                <p style={{ fontFamily: 'var(--font-inter), sans-serif', fontSize: 11, fontWeight: 400, letterSpacing: '0.1em', color: 'white', textTransform: 'uppercase', margin: 0 }}>
-                  {ELEMENTS[activeIndex].label}
-                </p>
-              </div>
+              <CardContent label={ELEMENTS[displayIndex].label} />
             </div>
 
-            {/* Right side card — mostly hidden off-screen right */}
+            {/* RIGHT — rotate(-5deg) pivoting at bottom-left corner → top leans toward center */}
             <div
-              key={`right-${nextIndex}`}
-              className="hero-card-side"
+              className="hero-card-right"
               style={{
-                width: '38vw',
-                height: '26vh',
+                position: 'relative',
+                width: '36vw',
+                height: 'var(--card-height, 38vh)',
+                transform: 'rotate(-5deg)',
+                transformOrigin: 'bottom left',
+                marginLeft: '-4vw',
                 borderRadius: '14px 14px 0 0',
                 overflow: 'hidden',
                 flexShrink: 0,
-                marginLeft: '-26vw',   // pushes most of card off right edge
-                position: 'relative',
-                opacity: 'var(--side-opacity, 1)' as unknown as number,
+                transition: 'height 0.2s ease-out',
+                zIndex: 2,
               }}
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/website_animation_draft.png" alt={ELEMENTS[nextIndex].label}
-                style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-              <div style={{
-                position: 'absolute', bottom: 0, left: 0, right: 0,
-                padding: '24px 16px 12px',
-                background: 'linear-gradient(to top, rgba(0,0,0,0.6), transparent)',
-              }}>
-                <p style={{ fontFamily: 'var(--font-inter), sans-serif', fontSize: 10, fontWeight: 400, letterSpacing: '0.1em', color: 'white', textTransform: 'uppercase', margin: 0 }}>
-                  {ELEMENTS[nextIndex].label}
-                </p>
-              </div>
+              <CardContent label={ELEMENTS[rightIndex].label} />
             </div>
 
-          </div>{/* /cards */}
+          </div>{/* /cards strip */}
+
         </div>{/* /sticky */}
       </section>
     </>
