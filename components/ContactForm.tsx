@@ -119,9 +119,9 @@ export default function ContactForm() {
     setFormState('submitting')
 
     try {
-      const res = await fetch('https://formspree.io/f/XXXXXXXX', {
+      const res = await fetch('/api/contact', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           nombre:   values.nombre,
           email:    values.email,

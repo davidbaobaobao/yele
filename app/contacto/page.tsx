@@ -3,7 +3,7 @@ import ContactForm from '@/components/ContactForm'
 
 export const metadata: Metadata = {
   title: 'Contacto | Yele',
-  description: 'Cuéntanos tu negocio. Diseñamos y publicamos tu web en 3 días desde 19,90 €/mes.',
+  description: 'Cuéntanos tu negocio. Diseñamos y publicamos tu web en 3 días desde 29 €/mes.',
 }
 
 export default function ContactPage() {

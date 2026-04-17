@@ -5,7 +5,7 @@ import RevealText from '@/components/ui/RevealText'
 
 const FAQS = [
   {
-    q: '¿Por qué 19,90 €? ¿Hay algo que no me estáis contando?',
+    q: '¿Por qué 29 €? ¿Hay algo que no me estáis contando?',
     a: 'No hay trampa. Usamos herramientas modernas que nos permiten trabajar muy rápido. El ahorro en tiempo lo trasladamos al precio. El precio que ves es lo que pagas. Sin comisiones ocultas, sin letra pequeña.',
   },
   {
