@@ -61,7 +61,7 @@ export default function Navigation() {
 
           {/* Center — Logo */}
           <div style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)' }}>
-            <YeleLogo variant="dark" size={20} />
+            <YeleLogo variant="dark" height={28} />
           </div>
 
           {/* Right — CTAs */}
@@ -150,7 +150,7 @@ export default function Navigation() {
                 </svg>
               </button>
               <div style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)' }}>
-                <YeleLogo variant="dark" size={20} />
+                <YeleLogo variant="dark" height={28} />
               </div>
               <div style={{ width: 36 }} />
             </div>

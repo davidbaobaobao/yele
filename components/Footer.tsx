@@ -45,7 +45,7 @@ export default function Footer() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-12">
           {/* Col 1 — Brand */}
           <div className="col-span-2 md:col-span-1">
-            <YeleLogo variant="dark" size={20} />
+            <YeleLogo variant="dark" height={28} />
             <p
               style={{
                 fontFamily: 'var(--font-inter)',
