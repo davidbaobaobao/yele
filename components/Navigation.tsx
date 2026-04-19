@@ -67,7 +67,7 @@ export default function Navigation() {
           {/* Right — CTAs */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <Link
-              href="/empezar"
+              href="/registro"
               style={{
                 display: 'inline-block',
                 padding: '8px 16px',

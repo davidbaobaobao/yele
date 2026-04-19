@@ -7,10 +7,10 @@ const PLANS = [
   {
     title: 'Básica',
     tagline: 'Para empezar',
-    monthlyPrice: '€19.90',
+    monthlyPrice: '€19',
     monthlyDesc: 'al mes · facturado mensualmente',
-    annualPrice: '€15.90',
-    annualDesc: 'al mes · facturado €190.80/año',
+    annualPrice: '€15',
+    annualDesc: 'al mes · facturado €180/año',
     description: 'Perfecta para autónomos y pequeños negocios que quieren presencia online profesional.',
     features: [
       'Hasta 4 páginas',
