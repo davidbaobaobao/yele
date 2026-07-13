@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, Suspense } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 
 // Price IDs are resolved server-side in /api/create-checkout.
@@ -77,6 +77,31 @@ function ElegirPlanContent() {
   const [promoError, setPromoError] = useState('')
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null)
   const [checkoutError, setCheckoutError] = useState('')
+  const [autoRedirecting, setAutoRedirecting] = useState(true)
+
+  /* ── Auto-redirect to Starter plan on mount — skip 3-tier UI ── */
+  useEffect(() => {
+    if (!clientId) { setAutoRedirecting(false); return }
+
+    fetch('/api/create-checkout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ planId: 'starter', billingPeriod: 'monthly', clientId }),
+    })
+      .then(r => r.json())
+      .then(({ url, error }) => {
+        if (url) {
+          window.location.href = url
+        } else {
+          setCheckoutError(error || 'Error al procesar. Por favor inténtalo de nuevo.')
+          setAutoRedirecting(false)
+        }
+      })
+      .catch(() => {
+        setCheckoutError('Error de conexión. Por favor, inténtalo de nuevo.')
+        setAutoRedirecting(false)
+      })
+  }, [clientId])
 
   function handleApplyPromo() {
     const trimmed = promoCode.trim().toUpperCase()
@@ -111,6 +136,40 @@ function ElegirPlanContent() {
       alert('Error de conexión. Por favor, inténtalo de nuevo.')
       setLoadingPlan(null)
     }
+  }
+
+  /* Show loading screen while auto-redirecting to Stripe */
+  if (autoRedirecting) {
+    return (
+      <div style={{
+        minHeight: '100vh',
+        background: 'var(--surface)',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 16,
+      }}>
+        <div style={{
+          width: 28,
+          height: 28,
+          border: '1.5px solid rgba(28,28,24,0.12)',
+          borderTopColor: 'var(--on-surface)',
+          borderRadius: '50%',
+          animation: 'ep_spin 0.7s linear infinite',
+        }} />
+        <p style={{
+          fontFamily: 'var(--font-inter), sans-serif',
+          fontSize: 13,
+          fontWeight: 300,
+          color: 'rgba(28,28,24,0.5)',
+          letterSpacing: '0.04em',
+        }}>
+          Preparando tu acceso…
+        </p>
+        <style>{`@keyframes ep_spin { to { transform: rotate(360deg); } }`}</style>
+      </div>
+    )
   }
 
   return (
