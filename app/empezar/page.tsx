@@ -1021,7 +1021,20 @@ export default function EmpezarPage() {
       if (res.ok) {
         const body = await res.json().catch(() => ({}))
         const clientId = body.clientId ?? ''
-        router.push(`/elegir-plan?client_id=${clientId}`)
+
+        // Go directly to Stripe checkout with the Starter 49€/month plan
+        const checkoutRes = await fetch('/api/create-checkout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ planId: 'profesional', billingPeriod: 'monthly', clientId }),
+        })
+        const { url, error: checkoutError } = await checkoutRes.json()
+        if (checkoutError || !url) {
+          setSubmitError(checkoutError || 'Error al iniciar el pago. Por favor, inténtalo de nuevo.')
+          setSubmitting(false)
+          return
+        }
+        window.location.href = url
       } else {
         const body = await res.json().catch(() => ({}))
         setSubmitError(body.error || 'Error al enviar la solicitud. Por favor, inténtalo de nuevo.')
