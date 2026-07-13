@@ -58,6 +58,7 @@ export async function POST(request: Request) {
     metadata: { clientId, billingPeriod },
     subscription_data: {
       metadata: { clientId, billingPeriod },
+      ...(planId === 'starter' ? { trial_period_days: 30 } : {}),
     },
     locale: 'es',
     allow_promotion_codes: true,

@@ -597,21 +597,6 @@ export default function EmpezarPage() {
           />
         )}
 
-        <YesNoToggle
-          id="hasWebsite" label="¿Tienes web actualmente?"
-          value={data.hasWebsite}
-          onChange={v => set('hasWebsite', v)}
-        />
-
-        {data.hasWebsite === true && (
-          <FieldInput
-            id="websiteUrl" label="URL de tu web actual"
-            placeholder="https://..."
-            value={data.websiteUrl}
-            onChange={v => set('websiteUrl', v)}
-          />
-        )}
-
         <NavButtons
           onBack={() => setStep(1)}
           onNext={() => {
@@ -626,7 +611,7 @@ export default function EmpezarPage() {
   }
 
   function renderStep3() {
-    const extraFields = data.industry ? INDUSTRY_FIELDS[data.industry] : []
+    const extraFields = (data.industry ? INDUSTRY_FIELDS[data.industry] : []).filter(f => f.id !== 'servicios')
     return (
       <div className="flex flex-col gap-8">
         <div>
@@ -657,13 +642,6 @@ export default function EmpezarPage() {
             {data.description.length}/300
           </p>
         </div>
-
-        <FieldInput
-          id="openingHours" label="Horario de apertura"
-          placeholder="ej. Lunes a viernes 9:00–20:00"
-          value={data.openingHours}
-          onChange={v => set('openingHours', v)}
-        />
 
         {/* Divider before industry-specific */}
         {extraFields.length > 0 && (
@@ -722,6 +700,53 @@ export default function EmpezarPage() {
             />
           )
         })}
+
+        <div className="sumi-rule" aria-hidden="true" />
+
+        <FieldInput
+          id="brandColors" label="Colores de tu marca (opcional)"
+          placeholder="ej. Azul marino y dorado"
+          value={data.brandColors}
+          onChange={v => set('brandColors', v)}
+        />
+
+        <div>
+          <p style={labelCss}>Estilo que te gusta <span style={{ color: 'rgba(28,28,24,0.3)' }}>(elige hasta 2)</span></p>
+          <div className="flex flex-wrap gap-2">
+            {STYLE_OPTIONS.map(opt => {
+              const sel = data.stylePrefs.includes(opt)
+              const maxReached = data.stylePrefs.length >= 2 && !sel
+              return (
+                <button
+                  key={opt}
+                  type="button"
+                  disabled={maxReached}
+                  onClick={() => {
+                    if (maxReached) return
+                    set('stylePrefs', sel
+                      ? data.stylePrefs.filter(s => s !== opt)
+                      : [...data.stylePrefs, opt])
+                  }}
+                  style={{
+                    fontFamily: 'var(--font-inter)',
+                    fontSize: '10px',
+                    fontWeight: 200,
+                    letterSpacing: '0.15em',
+                    padding: '6px 14px',
+                    border: sel ? '0.5px solid var(--on-surface)' : '0.5px solid rgba(200,194,180,0.4)',
+                    background: sel ? 'var(--on-surface)' : 'transparent',
+                    color: sel ? 'var(--surface)' : maxReached ? 'rgba(28,28,24,0.25)' : 'rgba(28,28,24,0.6)',
+                    cursor: maxReached ? 'not-allowed' : 'pointer',
+                    opacity: maxReached ? 0.5 : 1,
+                    transition: 'all 0.2s ease',
+                  }}
+                >
+                  {opt.toLowerCase()}
+                </button>
+              )
+            })}
+          </div>
+        </div>
 
         <NavButtons
           onBack={() => setStep(2)}
@@ -970,7 +995,7 @@ export default function EmpezarPage() {
         )}
 
         <NavButtons
-          onBack={() => setStep(4)}
+          onBack={() => setStep(3)}
           onNext={handleSubmit}
           nextLabel="enviar mi solicitud →"
           nextDisabled={!data.rgpd}
@@ -1048,8 +1073,8 @@ export default function EmpezarPage() {
 
   // ─── Render ────────────────────────────────────────────────────────────────
 
-  const TOTAL_STEPS = 5
-  const stepRenderers = [renderStep1, renderStep2, renderStep3, renderStep4, renderStep5]
+  const TOTAL_STEPS = 4
+  const stepRenderers = [renderStep1, renderStep2, renderStep3, renderStep5]
 
   return (
     <>
