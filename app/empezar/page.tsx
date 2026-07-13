@@ -1026,7 +1026,7 @@ export default function EmpezarPage() {
         const checkoutRes = await fetch('/api/create-checkout', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ planId: 'profesional', billingPeriod: 'monthly', clientId }),
+          body: JSON.stringify({ planId: 'starter', billingPeriod: 'monthly', clientId }),
         })
         const { url, error: checkoutError } = await checkoutRes.json()
         if (checkoutError || !url) {

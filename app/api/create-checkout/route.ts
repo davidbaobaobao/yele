@@ -5,6 +5,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
 
 // Price IDs resolved server-side — never exposed to the client
 const PRICE_IDS: Record<string, Record<string, string | undefined>> = {
+  starter:     { monthly: process.env.STRIPE_PRICE_STARTER_MONTHLY,     annual: process.env.STRIPE_PRICE_STARTER_ANNUAL },
   basica:      { monthly: process.env.STRIPE_PRICE_BASICA_MONTHLY,      annual: process.env.STRIPE_PRICE_BASICA_ANNUAL },
   profesional: { monthly: process.env.STRIPE_PRICE_PROFESIONAL_MONTHLY, annual: process.env.STRIPE_PRICE_PROFESIONAL_ANNUAL },
   avanzada:    { monthly: process.env.STRIPE_PRICE_AVANZADA_MONTHLY,    annual: process.env.STRIPE_PRICE_AVANZADA_ANNUAL },
